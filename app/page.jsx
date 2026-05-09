@@ -4,16 +4,30 @@ import { concepts } from "@/data/concepts";
 export default function Home() {
   return (
     <div style={styles.root}>
-      <p style={styles.tagline}>A byte a day, keeps the layoff away</p>
+      <p style={styles.tagline} className="tb-tagline">
+        A byte a day, keeps the layoff away
+      </p>
 
       <ul style={styles.list}>
         {concepts.map((c) => {
           const isReady = !!c.questions;
           const inner = (
-            <div style={{ ...styles.row, opacity: isReady ? 1 : 0.4 }}>
+            <div
+              style={{ ...styles.row, opacity: isReady ? 1 : 0.4 }}
+              className="tb-day-row"
+            >
               <span style={styles.day}>Day {String(c.day).padStart(2, "0")}</span>
-              <span style={styles.tag}>{c.tag}</span>
-              <span style={styles.title}>{c.title}</span>
+              <span style={styles.tag} className="tb-day-tag-inline">
+                {c.tag}
+              </span>
+              <span style={styles.titleWrap}>
+                <span style={styles.title} className="tb-day-title">
+                  {c.title}
+                </span>
+                <span className="tb-day-tag-mobile" style={{ display: "none" }}>
+                  {c.tag}
+                </span>
+              </span>
               <span style={styles.status}>{isReady ? "→" : "soon"}</span>
             </div>
           );
@@ -74,7 +88,13 @@ const styles = {
     letterSpacing: 1,
     textTransform: "uppercase",
   },
-  title: { fontSize: 16, color: "#f0f0e8" },
+  titleWrap: { display: "flex", flexDirection: "column", minWidth: 0, gap: 2 },
+  title: {
+    fontSize: 16,
+    color: "#f0f0e8",
+    lineHeight: 1.35,
+    wordBreak: "break-word",
+  },
   status: {
     fontFamily: "'Courier New', monospace",
     fontSize: 11,

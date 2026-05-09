@@ -33,12 +33,16 @@ export default function MapPage() {
 
   if (!user) {
     return (
-      <div style={styles.gate}>
-        <h1 style={styles.gateTitle}>🗺 知識地圖</h1>
-        <p style={styles.gateText}>
+      <div style={styles.gate} className="tb-gate">
+        <h1 style={styles.gateTitle} className="tb-gate-title">
+          🗺 知識地圖
+        </h1>
+        <p style={styles.gateText} className="tb-gate-text">
           登入後即可看到 8 個主題、15 個概念的視覺化進度。
         </p>
-        <p style={styles.gateText}>右上角點「登入」用 email 收登入連結。</p>
+        <p style={styles.gateText} className="tb-gate-text">
+          右上角點「登入」用 email 收登入連結。
+        </p>
       </div>
     );
   }
@@ -52,9 +56,11 @@ export default function MapPage() {
   }
 
   return (
-    <div style={styles.wrap}>
-      <h1 style={styles.title}>🗺 知識地圖</h1>
-      <p style={styles.subtitle}>
+    <div style={styles.wrap} className="tb-map-wrap">
+      <h1 style={styles.title} className="tb-map-title">
+        🗺 知識地圖
+      </h1>
+      <p style={styles.subtitle} className="tb-map-subtitle">
         金色＝已掌握（≥2/3）　橙色＝嘗試過　灰色＝未做。點概念前往閱讀。
       </p>
       <KnowledgeMap attempts={attempts} />

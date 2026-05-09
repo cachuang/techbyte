@@ -122,7 +122,10 @@ export default function KnowledgeMap({ attempts }) {
   };
 
   return (
-    <div style={{ height: "70vh", background: "#0a0a0a" }}>
+    <div
+      className="tb-map-canvas"
+      style={{ height: "70vh", background: "#0a0a0a", borderRadius: 8 }}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -131,6 +134,8 @@ export default function KnowledgeMap({ attempts }) {
         fitViewOptions={{ padding: 0.15 }}
         nodesConnectable={false}
         nodesFocusable
+        panOnScroll={false}
+        zoomOnScroll={true}
         proOptions={{ hideAttribution: true }}
       >
         <Background color="#1e1e1e" gap={24} />

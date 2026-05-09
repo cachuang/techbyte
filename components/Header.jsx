@@ -11,31 +11,38 @@ export default function Header() {
 
   return (
     <>
-      <header style={styles.header}>
+      <header style={styles.header} className="tb-header">
         <Link href="/" style={styles.brandLink}>
           <span style={styles.logo}>techbyte</span>
         </Link>
         <nav style={styles.nav}>
           {!loading && user && (
             <>
-              <Link href="/map" style={styles.navLink}>
-                🗺 知識地圖
+              <Link href="/map" style={styles.navLink} className="tb-nav-link">
+                <span style={styles.navIcon}>🗺</span>
+                <span style={styles.navLabel}>知識地圖</span>
               </Link>
-              <span style={styles.email}>{user.email}</span>
-              <button onClick={signOut} style={styles.linkBtn}>
+              <span style={styles.email} className="tb-header-email">
+                {user.email}
+              </span>
+              <button onClick={signOut} style={styles.linkBtn} className="tb-link-btn">
                 登出
               </button>
             </>
           )}
           {!loading && !user && (
-            <button onClick={() => setShowAuth((s) => !s)} style={styles.linkBtn}>
+            <button
+              onClick={() => setShowAuth((s) => !s)}
+              style={styles.linkBtn}
+              className="tb-link-btn"
+            >
               {showAuth ? "取消" : "登入"}
             </button>
           )}
         </nav>
       </header>
       {showAuth && !user && (
-        <div style={styles.authWrap}>
+        <div style={styles.authWrap} className="tb-auth-wrap">
           <AuthForm onClose={() => setShowAuth(false)} />
         </div>
       )}
@@ -65,14 +72,19 @@ const styles = {
     letterSpacing: 2,
     fontWeight: 700,
   },
-  nav: { display: "flex", alignItems: "center", gap: 14 },
+  nav: { display: "flex", alignItems: "center", gap: 12, flexWrap: "nowrap" },
   navLink: {
     fontFamily: "'Courier New', monospace",
     fontSize: 12,
     color: "#aaa",
     letterSpacing: 1,
     textDecoration: "none",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
   },
+  navIcon: { fontSize: 14 },
+  navLabel: {},
   email: {
     fontFamily: "'Courier New', monospace",
     fontSize: 11,
