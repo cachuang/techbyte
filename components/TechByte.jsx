@@ -453,7 +453,7 @@ const styles = {
     minHeight: "100vh",
     background: "#0a0a0a",
     color: "#e8e8e0",
-    fontFamily: "'Georgia', 'Noto Serif TC', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
     maxWidth: 680,
     margin: "0 auto",
     padding: "0 0 80px",
@@ -766,7 +766,7 @@ const styles = {
     color: "#888",
     lineHeight: 1.7,
     fontStyle: "italic",
-    fontFamily: "'Georgia', 'Noto Serif TC', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
   },
   originCard: {
     background: "#13110a",

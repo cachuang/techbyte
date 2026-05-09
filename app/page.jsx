@@ -97,7 +97,7 @@ const styles = {
     minHeight: "100vh",
     background: "#0e0e10",
     color: "#dcd8cc",
-    fontFamily: "'Georgia', 'Noto Serif TC', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
     maxWidth: 680,
     margin: "0 auto",
     padding: "0 0 80px",
@@ -146,7 +146,7 @@ const styles = {
     fontWeight: 700,
   },
   dayNum: {
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
     fontSize: 26,
     fontWeight: 700,
     color: "#9a968a",
@@ -155,7 +155,7 @@ const styles = {
     fontFeatureSettings: '"tnum"',
   },
   dayNumToday: {
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
     fontSize: 28,
     fontWeight: 700,
     color: "#facc15",
@@ -171,7 +171,7 @@ const styles = {
     gap: 5,
   },
   tag: {
-    fontFamily: "'Georgia', 'Noto Serif TC', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
     fontSize: 12,
     color: "#fbbf24",
     fontWeight: 500,
@@ -199,7 +199,7 @@ const styles = {
     minWidth: 60,
   },
   statusArrow: {
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
     fontSize: 18,
     color: "#5a574e",
     fontWeight: 400,

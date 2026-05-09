@@ -15,7 +15,7 @@ html,
 body {
   background: #0e0e10;
   color: #dcd8cc;
-  font-family: "Georgia", "Noto Serif TC", serif;
+  font-family: "Georgia", var(--font-noto-serif-tc), "Noto Serif TC", serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
