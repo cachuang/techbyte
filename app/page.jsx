@@ -4,10 +4,7 @@ import { concepts } from "@/data/concepts";
 export default function Home() {
   return (
     <div style={styles.root}>
-      <header style={styles.header}>
-        <span style={styles.logo}>techbyte</span>
-        <span style={styles.tagline}>A byte a day, keeps the layoff away</span>
-      </header>
+      <p style={styles.tagline}>A byte a day, keeps the layoff away</p>
 
       <ul style={styles.list}>
         {concepts.map((c) => {
@@ -47,21 +44,12 @@ const styles = {
     margin: "0 auto",
     padding: "0 0 80px",
   },
-  header: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    padding: "32px 28px 24px",
-    borderBottom: "1px solid #1e1e1e",
+  tagline: {
+    fontSize: 13,
+    color: "#666",
+    fontStyle: "italic",
+    padding: "24px 28px 12px",
   },
-  logo: {
-    fontFamily: "'Courier New', monospace",
-    fontSize: 18,
-    color: "#facc15",
-    letterSpacing: 3,
-    fontWeight: 700,
-  },
-  tagline: { fontSize: 13, color: "#666", fontStyle: "italic" },
   list: { listStyle: "none", padding: "16px 0", margin: 0 },
   item: { borderBottom: "1px solid #161616" },
   link: { textDecoration: "none", color: "inherit", display: "block" },

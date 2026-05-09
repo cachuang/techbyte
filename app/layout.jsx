@@ -1,4 +1,6 @@
 import "./globals.css";
+import Providers from "./providers";
+import Header from "@/components/Header";
 
 export const metadata = {
   title: "techbyte — A byte a day",
@@ -8,7 +10,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-Hant">
-      <body>{children}</body>
+      <body>
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

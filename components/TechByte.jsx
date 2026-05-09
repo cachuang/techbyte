@@ -2,17 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { getNextConcept } from "@/data/concepts";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
 
 const STAGES = { READ: "read", QUIZ: "quiz", RESULT: "result" };
 const UNSURE_ID = "unsure";
 
 export default function TechByte({ concept }) {
+  const { user } = useAuth();
   const [stage, setStage] = useState(STAGES.READ);
   const [currentQ, setCurrentQ] = useState(0);
   const [selected, setSelected] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [answers, setAnswers] = useState([]);
   const [readProgress, setReadProgress] = useState(0);
+  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
 
   useEffect(() => {
     if (stage !== STAGES.READ) return;
@@ -36,6 +40,21 @@ export default function TechByte({ concept }) {
     setAnswers((prev) => [...prev, { qId: q.id, correct: isCorrect, unsure: isUnsure }]);
   };
 
+  const persistAttempt = async (finalAnswers) => {
+    if (!user) return;
+    setSaveStatus("saving");
+    const correctCount = finalAnswers.filter((a) => a.correct).length;
+    const unsureCount = finalAnswers.filter((a) => a.unsure).length;
+    const { error } = await supabase.from("attempts").insert({
+      user_id: user.id,
+      day: concept.day,
+      score: correctCount,
+      unsure_count: unsureCount,
+      answers: finalAnswers,
+    });
+    setSaveStatus(error ? "error" : "saved");
+  };
+
   const handleNext = () => {
     if (currentQ + 1 < concept.questions.length) {
       setCurrentQ((c) => c + 1);
@@ -43,6 +62,7 @@ export default function TechByte({ concept }) {
       setConfirmed(false);
     } else {
       setStage(STAGES.RESULT);
+      persistAttempt(answers);
     }
   };
 
@@ -53,6 +73,7 @@ export default function TechByte({ concept }) {
     setSelected(null);
     setConfirmed(false);
     setReadProgress(0);
+    setSaveStatus("idle");
   };
 
   const isUnsureSelected = selected === UNSURE_ID;
@@ -78,14 +99,10 @@ export default function TechByte({ concept }) {
     <div style={styles.root}>
       <style>{css}</style>
 
-      <header style={styles.header}>
-        <div style={styles.headerLeft}>
-          <span style={styles.logo}>techbyte</span>
-          <span style={styles.dot}>·</span>
-          <span style={styles.dayBadge}>Day {concept.day}</span>
-        </div>
-        <div style={styles.streak}>🔥 3 天連續</div>
-      </header>
+      <div style={styles.dayMeta}>
+        <span style={styles.dayBadge}>Day {concept.day}</span>
+        <span style={styles.streak}>🔥 3 天連續</span>
+      </div>
 
       {stage === STAGES.READ && (
         <div style={styles.page} className="fade-in">
@@ -264,6 +281,13 @@ export default function TechByte({ concept }) {
             {score} / {concept.questions.length} 題正確
           </p>
 
+          <p style={styles.saveStatus}>
+            {!user && "💾 登入後即可保存進度，跨裝置查看你的知識地圖"}
+            {user && saveStatus === "saving" && "儲存中..."}
+            {user && saveStatus === "saved" && "✓ 已儲存到你的紀錄"}
+            {user && saveStatus === "error" && "⚠️ 儲存失敗，但解答已顯示"}
+          </p>
+
           <div style={styles.resultCards}>
             {concept.questions.map((quest, i) => {
               const a = answers[i];
@@ -310,29 +334,16 @@ const styles = {
     margin: "0 auto",
     padding: "0 0 80px",
   },
-  header: {
+  dayMeta: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "20px 28px",
-    borderBottom: "1px solid #1e1e1e",
-    position: "sticky",
-    top: 0,
-    background: "#0a0a0a",
-    zIndex: 10,
-  },
-  headerLeft: { display: "flex", alignItems: "center", gap: 10 },
-  logo: {
+    padding: "16px 28px 0",
     fontFamily: "'Courier New', monospace",
-    fontSize: 15,
-    color: "#facc15",
-    letterSpacing: 2,
-    fontWeight: 700,
   },
-  dot: { color: "#333", fontSize: 20 },
   dayBadge: { fontSize: 12, color: "#666", letterSpacing: 1 },
-  streak: { fontSize: 13, color: "#999" },
-  page: { padding: "32px 28px" },
+  streak: { fontSize: 12, color: "#999" },
+  page: { padding: "16px 28px 32px" },
   tagRow: {
     display: "flex",
     alignItems: "center",
@@ -534,8 +545,16 @@ const styles = {
     textAlign: "center",
     fontSize: 15,
     color: "#888",
-    marginBottom: 32,
+    marginBottom: 8,
     fontFamily: "monospace",
+  },
+  saveStatus: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 24,
+    fontFamily: "'Courier New', monospace",
+    minHeight: 16,
   },
   resultCards: {
     display: "flex",
