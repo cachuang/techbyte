@@ -31,6 +31,7 @@ const { values } = parseArgs({
     tag: { type: "string" },
     model: { type: "string", default: "claude-opus-4-7" },
     stdout: { type: "boolean", default: false },
+    "no-review": { type: "boolean", default: false },
   },
 });
 
@@ -198,5 +199,115 @@ if (values.stdout) {
   await mkdir(dirname(outPath), { recursive: true });
   await writeFile(outPath, JSON.stringify(concept, null, 2) + "\n");
   console.error(`▸ Wrote ${outPath}`);
-  console.error(`  Review, then merge into data/concepts.js.`);
 }
+
+// Reviewer pass: 同個 model、共用 cached VOICE，角色換成挑刺工程師。
+// 找事實錯誤、干擾選項強度問題、循環論證、風格偏移。不會自動改稿，
+// 只會印 issues 並寫 day-N.review.md 給人類審稿用。
+let reviewExitCode = 0;
+if (!values["no-review"] && !values.stdout) {
+  const ReviewSchema = z.object({
+    verdict: z
+      .enum(["pass", "needs-edit", "rewrite"])
+      .describe("pass = 可直接合併；needs-edit = 有需修的點但骨架對；rewrite = 重來"),
+    summary: z.string().describe("整體一句話評論"),
+    issues: z
+      .array(
+        z.object({
+          severity: z.enum(["blocker", "warn", "nit"]),
+          location: z
+            .string()
+            .describe(
+              "JSON 路徑，例如 'body'、'analogy.text'、'questions[1].options[b]'、'questions[2].explanation'",
+            ),
+          issue: z.string().describe("問題是什麼。事實錯誤要寫出正確版本。"),
+          suggestion: z.string().describe("具體怎麼修，可貼可改的句子最好"),
+        }),
+      )
+      .describe("找到的問題清單。沒問題就回空陣列，不要硬找碴。"),
+  });
+
+  const reviewUserPrompt = `下面是剛產出的 Day ${day} 草稿，請 review。
+
+\`\`\`json
+${JSON.stringify(concept, null, 2)}
+\`\`\`
+
+你是 techbyte 的挑刺工程師。重點檢查：
+
+1. **事實錯誤** — 技術細節是否正確（最重要）。如果你不確定某個 claim，就標 warn，不要假裝確定。
+2. **干擾選項強度** — 三個選項裡，錯誤的兩個是不是「合理但錯」？太弱（明顯沒人選）或太強（連正確答案都站不住）都要抓。
+3. **解說品質** — 是回答「為什麼」還是只在重述「什麼」？有沒有循環論證？
+4. **類比破綻** — 兩邊對應關係是否成立？會不會誤導？
+5. **風格偏移** — 違反上面 voice rules（例：寫給新手、缺取捨討論、hook 平鋪直敘）。
+
+每個 issue 給 severity / location / issue / suggestion。沒問題回空陣列，不要硬找碴。
+verdict 嚴格判：有 blocker → rewrite 或 needs-edit；只有 nit → pass。`;
+
+  console.error(`\n▸ Running reviewer pass...`);
+  const reviewResponse = await client.messages.parse({
+    model: values.model,
+    max_tokens: 8000,
+    thinking: { type: "adaptive" },
+    output_config: {
+      effort: "high",
+      format: zodOutputFormat(ReviewSchema, "review"),
+    },
+    system: [
+      { type: "text", text: VOICE, cache_control: { type: "ephemeral" } },
+    ],
+    messages: [{ role: "user", content: reviewUserPrompt }],
+  });
+
+  const review = reviewResponse.parsed_output;
+  if (!review) {
+    console.error("✗ Reviewer did not return parseable JSON. Skipping review.");
+  } else {
+    const ru = reviewResponse.usage;
+    console.error(
+      `▸ Review done. tokens: input=${ru.input_tokens} cache_read=${ru.cache_read_input_tokens ?? 0} output=${ru.output_tokens}`,
+    );
+    console.error(`▸ Verdict: ${review.verdict.toUpperCase()} — ${review.summary}`);
+
+    const sevIcon = { blocker: "🛑", warn: "⚠️ ", nit: "·" };
+    if (review.issues.length === 0) {
+      console.error(`  No issues found.`);
+    } else {
+      for (const i of review.issues) {
+        console.error(
+          `  ${sevIcon[i.severity]} [${i.severity}] ${i.location}\n      ${i.issue}\n      → ${i.suggestion}`,
+        );
+      }
+    }
+
+    const md = [
+      `# Day ${day} review`,
+      ``,
+      `**Verdict**: ${review.verdict}`,
+      ``,
+      review.summary,
+      ``,
+      `## Issues (${review.issues.length})`,
+      ``,
+      ...(review.issues.length === 0
+        ? ["_No issues found._"]
+        : review.issues.flatMap((i) => [
+            `### ${sevIcon[i.severity]} [${i.severity}] \`${i.location}\``,
+            ``,
+            i.issue,
+            ``,
+            `**Fix**: ${i.suggestion}`,
+            ``,
+          ])),
+    ].join("\n");
+    const reviewPath = resolve(ROOT, `data/drafts/day-${day}.review.md`);
+    await writeFile(reviewPath, md);
+    console.error(`▸ Wrote ${reviewPath}`);
+
+    const blockers = review.issues.filter((i) => i.severity === "blocker").length;
+    if (blockers > 0 || review.verdict === "rewrite") reviewExitCode = 4;
+  }
+}
+
+console.error(`\n  Review the draft, then merge into data/concepts.js.`);
+process.exit(reviewExitCode);
