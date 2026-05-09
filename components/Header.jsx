@@ -22,8 +22,8 @@ export default function Header() {
                 <span style={styles.navIcon}>🗺</span>
                 <span style={styles.navLabel}>知識地圖</span>
               </Link>
-              <span style={styles.email} className="tb-header-email">
-                {user.email}
+              <span style={styles.username} className="tb-header-email">
+                @{user.user_metadata?.username || (user.email || "").split("@")[0]}
               </span>
               <button onClick={signOut} style={styles.linkBtn} className="tb-link-btn">
                 登出
@@ -85,11 +85,11 @@ const styles = {
   },
   navIcon: { fontSize: 14 },
   navLabel: {},
-  email: {
+  username: {
     fontFamily: "'Courier New', monospace",
-    fontSize: 11,
-    color: "#666",
-    letterSpacing: 0.5,
+    fontSize: 12,
+    color: "#888",
+    letterSpacing: 0.3,
   },
   linkBtn: {
     background: "transparent",

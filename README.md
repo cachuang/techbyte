@@ -34,9 +34,8 @@ A byte a day, keeps the layoff away.
      for all using (auth.uid() = user_id);
    ```
 
-3. Authentication → URL Configuration → Site URL 設成 `http://localhost:3000`，
-   Redirect URLs 加入 `http://localhost:3000/**` 和 production domain。
-4. Settings → API → 拷貝 `Project URL` 與 `anon public` key。
+3. **Authentication → Sign In / Providers → Email** 把 **Confirm email 關掉**（這是關鍵：因為改用 username + password 登入，不寄信也不驗證）
+4. Settings → API → 拷貝 `Project URL` 與 `anon public` key
 
 ### 2. 環境變數
 
@@ -53,9 +52,11 @@ npm run dev
 ```
 
 開 `http://localhost:3000`：
-- Header 點「登入」→ 輸入 email → 收 magic link → 點連結回來即登入
+- Header 點「登入」→ 切到「註冊」tab → 輸入 username（英文/數字/底線 3–24 字）+ 密碼（≥6 字元）→ 建立帳號
 - 進 `/day/1` 答題 → RESULT 頁顯示「✓ 已儲存」
 - 進 `/map` 看你的知識地圖
+
+> 註：Supabase 仍會把帳號存進 `auth.users`，內部用 `<username>@user.techbyte.app` 當 fake email。使用者本身只看到 username。
 
 ## Deploy
 
