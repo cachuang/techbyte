@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getNextConceptByReleaseDay } from "@/data/concepts";
+import { getNextConceptByReleaseDay, getConceptBySlug } from "@/data/concepts";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { getDayStatus } from "@/lib/day-progress";
 
 const STAGES = { READ: "read", QUIZ: "quiz", RESULT: "result" };
 const UNSURE_ID = "unsure";
+
+const LEVEL_COLOR = { 1: "#7dd3fc", 2: "#fbbf24", 3: "#f472b6" };
+const LEVEL_TITLE = { 1: "基礎", 2: "取捨", 3: "細節" };
 
 export default function TechByte({ concept }) {
   const { user } = useAuth();
@@ -175,6 +178,54 @@ export default function TechByte({ concept }) {
           <p style={styles.hook} className="tb-hook">
             {concept.hook}
           </p>
+
+          {(() => {
+            const level = concept.level;
+            const prereqs = (concept.prerequisites ?? [])
+              .map((s) => getConceptBySlug(s))
+              .filter(Boolean);
+            const assumed = concept.assumedKnowledge ?? [];
+            const showMeta =
+              level >= 2 || prereqs.length > 0 || assumed.length > 0;
+            if (!showMeta) return null;
+            return (
+              <div style={styles.metaRow} className="tb-meta-row">
+                {level && (
+                  <span
+                    style={{
+                      ...styles.levelBadge,
+                      color: LEVEL_COLOR[level],
+                      borderColor: LEVEL_COLOR[level] + "55",
+                    }}
+                  >
+                    L{level} {LEVEL_TITLE[level]}
+                  </span>
+                )}
+                {prereqs.length > 0 && (
+                  <span style={styles.metaItem}>
+                    <span style={styles.metaLabel}>建議先讀</span>{" "}
+                    {prereqs.map((p, i) => (
+                      <span key={p.slug}>
+                        {i > 0 && "、"}
+                        <Link
+                          href={`/concept/${p.slug}`}
+                          style={styles.metaLink}
+                        >
+                          《{p.title}》
+                        </Link>
+                      </span>
+                    ))}
+                  </span>
+                )}
+                {assumed.length > 0 && (
+                  <span style={styles.metaItem}>
+                    <span style={styles.metaLabel}>假設懂</span>{" "}
+                    {assumed.join("、")}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
 
           <div style={styles.divider} />
 
@@ -496,6 +547,38 @@ const styles = {
     lineHeight: 1.6,
     marginBottom: 24,
     fontStyle: "italic",
+  },
+  metaRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: "8px 12px",
+    marginTop: 14,
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11.5,
+    color: "#7a766c",
+    letterSpacing: 0.3,
+    lineHeight: 1.6,
+  },
+  levelBadge: {
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: 10,
+    border: "1px solid",
+    fontSize: 10.5,
+    fontWeight: 700,
+    letterSpacing: 0.5,
+  },
+  metaItem: {
+    display: "inline",
+  },
+  metaLabel: {
+    color: "#5a574e",
+  },
+  metaLink: {
+    color: "#a8a48a",
+    textDecoration: "none",
+    borderBottom: "1px dashed #3a3a3a",
   },
   divider: { height: 1, background: "#1e1e1e", margin: "24px 0" },
   body: { fontSize: 16, lineHeight: 1.85, color: "#c8c8c0", marginBottom: 20 },

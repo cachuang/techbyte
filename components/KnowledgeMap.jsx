@@ -31,6 +31,18 @@ function classify(score) {
   return "attempted";
 }
 
+const LEVEL_COLOR = {
+  1: "#7dd3fc", // 基礎 — cool blue
+  2: "#fbbf24", // 取捨 — amber（跟主色系一致）
+  3: "#f472b6", // 細節 — magenta，跳出來提醒進階
+};
+
+const LEVEL_TITLE = {
+  1: "基礎概念",
+  2: "場景取捨",
+  3: "進階細節",
+};
+
 export default function KnowledgeMap({ attempts }) {
   const bestScoreBySlug = useMemo(() => {
     const map = {};
@@ -70,7 +82,13 @@ export default function KnowledgeMap({ attempts }) {
     }
     return Array.from(byTag, ([tag, list]) => ({
       tag,
-      list: list.slice().sort((a, b) => a.releaseDay - b.releaseDay),
+      list: list.slice().sort((a, b) => {
+        // 由淺入深：先 level，同 level 按 releaseDay
+        if ((a.level ?? 99) !== (b.level ?? 99)) {
+          return (a.level ?? 99) - (b.level ?? 99);
+        }
+        return a.releaseDay - b.releaseDay;
+      }),
       mastered: list.filter(
         (c) => classify(bestScoreBySlug[c.slug]) === "mastered",
       ).length,
@@ -99,6 +117,17 @@ export default function KnowledgeMap({ attempts }) {
         </div>
         <div style={styles.progressLabel}>
           掌握進度 {masteredPct}%（{stats.mastered} / {stats.total}）
+        </div>
+        <div style={styles.legend}>
+          <span style={{ ...styles.legendItem, color: LEVEL_COLOR[1] }}>
+            L1 基礎
+          </span>
+          <span style={{ ...styles.legendItem, color: LEVEL_COLOR[2] }}>
+            L2 取捨
+          </span>
+          <span style={{ ...styles.legendItem, color: LEVEL_COLOR[3] }}>
+            L3 細節
+          </span>
         </div>
       </div>
 
@@ -132,6 +161,15 @@ export default function KnowledgeMap({ attempts }) {
                       />
                       <span style={styles.day}>
                         {String(c.releaseDay).padStart(2, "0")}
+                      </span>
+                      <span
+                        style={{
+                          ...styles.level,
+                          color: LEVEL_COLOR[c.level] ?? "#555",
+                        }}
+                        title={LEVEL_TITLE[c.level] ?? ""}
+                      >
+                        L{c.level ?? "?"}
                       </span>
                       <span style={styles.title}>{c.title}</span>
                       <span
@@ -222,6 +260,19 @@ const styles = {
     fontFamily: "'Courier New', monospace",
     letterSpacing: 0.3,
   },
+  legend: {
+    display: "flex",
+    gap: 14,
+    marginTop: 12,
+    paddingTop: 10,
+    borderTop: "1px solid #1c1c20",
+  },
+  legendItem: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10.5,
+    fontWeight: 700,
+    letterSpacing: 0.5,
+  },
 
   groups: {
     display: "flex",
@@ -261,13 +312,20 @@ const styles = {
   },
   item: {
     display: "grid",
-    gridTemplateColumns: "16px 36px 1fr auto",
+    gridTemplateColumns: "16px 32px 22px 1fr auto",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     padding: "14px 6px",
     textDecoration: "none",
     color: "inherit",
     transition: "background 0.15s",
+  },
+  level: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10.5,
+    fontWeight: 700,
+    letterSpacing: 0.3,
+    textAlign: "center",
   },
   dot: {
     width: 10,

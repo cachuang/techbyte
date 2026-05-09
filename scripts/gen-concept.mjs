@@ -68,6 +68,24 @@ if (!slug || !releaseDay || !title || !hook || !analogyHint) {
 const ConceptSchema = z.object({
   slug: z.string().describe("URL-safe 識別字，照使用者給的，不要改"),
   releaseDay: z.number().int(),
+  level: z
+    .number()
+    .int()
+    .min(1)
+    .max(3)
+    .describe(
+      "1 = 基礎概念（單一觀念入門，不預設特定工具）；2 = 場景取捨（X vs Y、什麼時候用哪個）；3 = 進階細節（pitfall / 邊角攻防，沒讀過幾個 L1/L2 會卡）",
+    ),
+  prerequisites: z
+    .array(z.string())
+    .describe(
+      "techbyte 內部 slug，沒讀過真的看不懂這篇的那種。狠一點，不要列「相關」，0-2 個常見。",
+    ),
+  assumedKnowledge: z
+    .array(z.string())
+    .describe(
+      "自由文字標籤，描述讀者該懂的背景但 techbyte 還沒寫成獨立概念的東西。例：「HTTP basics」「OOP basics」「Memory model」。L1 通常空陣列。",
+    ),
   tag: z.string(),
   title: z.string(),
   hook: z.string(),
@@ -144,6 +162,10 @@ ${JSON.stringify(day1, null, 2)}
 ## 範例 2：Day 2
 ${JSON.stringify(day2, null, 2)}`;
 
+const stubLevel = stub.level;
+const stubPrerequisites = stub.prerequisites;
+const stubAssumedKnowledge = stub.assumedKnowledge;
+
 const userPrompt = `請寫概念「${title}」的內容。
 
 slug：${slug}
@@ -151,8 +173,15 @@ releaseDay：${releaseDay}
 標籤：${tag ?? "未指定"}
 類比提示：${analogyHint}
 核心問題：${hook}
+${stubLevel ? `level（已指定）：${stubLevel}\n` : "level（自己判斷，照 schema 描述）：\n"}${stubPrerequisites ? `prerequisites（已指定）：${JSON.stringify(stubPrerequisites)}\n` : "prerequisites（自己判斷）：\n"}${stubAssumedKnowledge ? `assumedKnowledge（已指定）：${JSON.stringify(stubAssumedKnowledge)}\n` : "assumedKnowledge（自己判斷，凡引用沒解釋的背景都列出來）：\n"}
 
-請依 schema 輸出 JSON，沿用上述兩個範例的語氣與結構。slug 欄位寫 "${slug}"，releaseDay 欄位寫 ${releaseDay}。`;
+請依 schema 輸出 JSON，沿用上述兩個範例的語氣與結構。slug 欄位寫 "${slug}"，releaseDay 欄位寫 ${releaseDay}。
+
+特別注意：
+- 內文裡引用的任何技術詞，如果不是 prerequisites 列出的 slug、也沒在 assumedKnowledge 裡標出來，就得在內文裡解釋。寧可冗一點也不要假設讀者懂。
+- L1 概念要從 0 開始講，不假設任何特定工具或情境。
+- L2 概念可以假設讀者懂 prereq + assumedKnowledge，重點在取捨。
+- L3 概念寫的是 pitfall / 邊角，要清楚標出建立在什麼基礎上。`;
 
 const client = new Anthropic();
 
@@ -254,6 +283,15 @@ ${JSON.stringify(concept, null, 2)}
 3. **解說品質** — 是回答「為什麼」還是只在重述「什麼」？有沒有循環論證？
 4. **類比破綻** — 兩邊對應關係是否成立？會不會誤導？
 5. **風格偏移** — 違反上面 voice rules（例：寫給新手、缺取捨討論、hook 平鋪直敘）。
+6. **level 是否相符** — 這篇宣稱 level ${concept.level}：
+   - L1 應該從 0 講起、不假設特定工具
+   - L2 應該假設讀者已懂背景、重點在取捨
+   - L3 應該是 pitfall / 進階 idiom，明確建立在某些前置上
+   抓「假裝 L1 但其實預設一堆」或「宣稱 L3 但其實只是入門」這種 mismatch。
+7. **prereq / assumedKnowledge 是否完整** — 這篇宣稱：
+   - prerequisites = ${JSON.stringify(concept.prerequisites)}
+   - assumedKnowledge = ${JSON.stringify(concept.assumedKnowledge)}
+   內文如果引用了某個概念（HTTP, OOP, embedding 等），它一定要在 prereq slug 列表或 assumedKnowledge 自由文字裡有提到、或內文自己有解釋。否則就標 issue：「引用了 X 但讀者沒被告知該懂 X」。
 
 每個 issue 給 severity / location / issue / suggestion。沒問題回空陣列，不要硬找碴。
 verdict 嚴格判：有 blocker → rewrite 或 needs-edit；只有 nit → pass。`;

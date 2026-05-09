@@ -70,6 +70,9 @@
 {
   slug: String,                // URL-safe 穩定 identity（kebab-case），永不變
   releaseDay: Number,          // 發行時程索引（可調，跟 identity 解耦）
+  level: 1 | 2 | 3,            // 1 基礎 / 2 取捨 / 3 細節，見 §11.6 rubric
+  prerequisites: [String],     // techbyte 內部 slug，沒讀真的看不懂的那種
+  assumedKnowledge: [String],  // 自由文字標籤，描述讀者該懂但 techbyte 還沒寫成獨立概念的東西
   tag: String,                 // 分類：API 設計 / 工程 / 安全 / 程式設計 ...
   title: String,
   hook: String,                // 開場問句，勾住注意力
@@ -313,6 +316,22 @@ CTA（手機 sticky bottom）
 - `nit` 可選擇性處理
 
 Reviewer 不是橡皮圖章。事實層面 reviewer 也可能錯（特別是冷僻領域），但結構問題（選項立場重疊、循環論證、類比破綻）reviewer 抓得很準，**不要忽略它的結構抓錯**。
+
+### 11.6 Level rubric（由淺入深的判定）
+
+每篇都要標 `level: 1 | 2 | 3`：
+
+- **L1 基礎概念** — 標題是單一名詞、內文要先解釋「這是什麼」、不預設讀者懂任何特定工具。讀完的價值是「認識一個東西」。通常 0 個 prereq。例：`closure`、`big-o`。
+- **L2 場景取捨** — 標題常是 X vs Y、預設讀者懂相關生態、主軸在「什麼時候用哪個、付什麼代價」。通常 0-1 個 prereq。例：`jwt-vs-session`、`cache-strategies`。
+- **L3 進階細節** — 主題本身是 pitfall / 進階 idiom，沒讀過某些 L1/L2 會卡。讀完的價值是「讓你避免一個具體錯誤」。通常 1-2 個 prereq。例：`race-condition`、`eventual-consistency`。
+
+**Prereq 收斂原則**：`prerequisites` 只列 techbyte 內已存在、且「沒讀真的看不懂」的 slug。狠一點，不要列「相關」。背景知識若 techbyte 還沒寫成獨立 L1 → 放 `assumedKnowledge` 自由文字（例：「HTTP basics」、「OOP basics」）。**未來補上對應 L1 後，把該條目從 assumedKnowledge 升級成 prerequisites slug。**
+
+**產 L2/L3 時的鏈式義務**：如果新概念引用了某個背景但 techbyte 還沒對應的 L1，要嘛
+- (a) 把該背景寫進 `assumedKnowledge`，並把對應 L1 加入 backlog（之後再產），或
+- (b) **先**產出對應的 L1 再回頭產這篇 L2。
+
+Reviewer pass 會檢查內文引用的概念是否都有 prereq slug、assumedKnowledge 條目、或內文自己解釋；缺一不可。
 
 ---
 
