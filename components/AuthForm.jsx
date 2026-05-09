@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-// 把 username 包成 fake email 給 Supabase Auth 用。使用者本身看不到也輸入不到。
+// Supabase Auth 會驗證 email 域名是否有 DNS（拒絕虛構域名），所以借用 gmail.com 當載體。
+// 加 "techbyte_" 前綴避免跟真實 Gmail 用戶撞 — 我們從不真的寄信，這個 email 也不會
+// 顯示給使用者；只是 auth.users 的內部主鍵。
 const usernameToEmail = (u) =>
-  `${u.trim().toLowerCase()}@user.techbyte.app`;
+  `techbyte_${u.trim().toLowerCase()}@gmail.com`;
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,24}$/;
 
