@@ -239,8 +239,8 @@ localStorage.removeItem('techbyte_first_visit'); location.reload();
 | 邊框 / 分隔 | `#1c1c20` / `#2a2a2a` |
 | 主文字 | `#dcd8cc`（從 #e8e8e0 暖灰化降對比） |
 | 次要文字 | `#888` / `#7a766c` |
-| 沙色（主強調） | `#d4b87a`（按鈕、今天、強調 — 從亮黃 `#facc15` 改來，降對比） |
-| 駝色（次強調） | `#b89968`（標籤、進度條尾端、tag 文字） |
+| 強調黃 | `#facc15`（按鈕、今天、強調） |
+| 暖黃 | `#fbbf24`（標籤 / 次強調） |
 | 答對綠 | `#4ade80` |
 | 答錯紅 | `#f87171` |
 | 不確定藍 | `#60a5fa` |
@@ -282,7 +282,7 @@ Tradeoffs（✅ / ⚠️ / ❌）
 CTA（手機 sticky bottom）
 ```
 
-**RESULT stage** 在「明天學什麼」之前插 `[optional] Further Reading`（呈現為 compact chip 列：標題 + ↗，hover/title 顯示 why）。
+**RESULT stage** 在「明天學什麼」之前插 `[optional] Further Reading`。
 
 ---
 
