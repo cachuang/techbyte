@@ -56,7 +56,7 @@ npm run dev
 - 進 `/day/1` 答題 → RESULT 頁顯示「✓ 已儲存」
 - 進 `/map` 看你的知識地圖
 
-> 註：Supabase 仍會把帳號存進 `auth.users`，內部用 `<username>@user.techbyte.app` 當 fake email。使用者本身只看到 username。
+> 註：Supabase 仍會把帳號存進 `auth.users`，內部用 `techbyte_<username>@gmail.com` 當 fake email（Supabase 會驗證 email 域名 DNS，所以借用 gmail.com 當載體；我們從不真的寄信）。使用者本身只看到 username。
 
 ## Deploy
 
