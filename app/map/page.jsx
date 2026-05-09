@@ -36,7 +36,7 @@ export default function MapPage() {
       <div style={styles.gate}>
         <h1 style={styles.gateTitle}>🗺 知識地圖</h1>
         <p style={styles.gateText}>
-          登入後即可看到 7 個主題、10 個概念的視覺化進度。
+          登入後即可看到 8 個主題、15 個概念的視覺化進度。
         </p>
         <p style={styles.gateText}>右上角點「登入」用 email 收登入連結。</p>
       </div>
