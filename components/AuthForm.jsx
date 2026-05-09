@@ -49,7 +49,7 @@ export default function AuthForm({ onClose }) {
       <label style={styles.label} htmlFor="auth-email">
         用 email 登入（會收到一個一次性連結）
       </label>
-      <div style={styles.row}>
+      <div style={styles.row} className="tb-auth-row">
         <input
           id="auth-email"
           type="email"
@@ -58,11 +58,15 @@ export default function AuthForm({ onClose }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={styles.input}
+          className="tb-auth-input"
           disabled={status === "sending"}
+          autoComplete="email"
+          inputMode="email"
         />
         <button
           type="submit"
           style={{ ...styles.btn, opacity: status === "sending" ? 0.5 : 1 }}
+          className="tb-auth-submit"
           disabled={status === "sending"}
         >
           {status === "sending" ? "寄送中..." : "寄送登入連結"}

@@ -7,6 +7,13 @@ export const metadata = {
   description: "每天 5–10 分鐘，學一個科技概念，做互動驗證，強化記憶。",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a0a0a",
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-Hant">

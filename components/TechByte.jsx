@@ -99,32 +99,40 @@ export default function TechByte({ concept }) {
     <div style={styles.root}>
       <style>{css}</style>
 
-      <div style={styles.dayMeta}>
+      <div style={styles.dayMeta} className="tb-day-meta">
         <span style={styles.dayBadge}>Day {concept.day}</span>
-        <span style={styles.streak}>🔥 3 天連續</span>
+        <span style={styles.metaRight}>
+          {stage === STAGES.READ && "⏱ 約 4 分鐘"}
+          {stage === STAGES.QUIZ &&
+            `題目 ${currentQ + 1} / ${concept.questions.length}`}
+          {stage === STAGES.RESULT && "🎯 結果"}
+        </span>
       </div>
 
       {stage === STAGES.READ && (
-        <div style={styles.page} className="fade-in">
+        <div style={styles.page} className="fade-in tb-page">
           <div style={styles.tagRow}>
             <span style={styles.tag}>{concept.tag}</span>
-            <span style={styles.readTime}>⏱ 約 4 分鐘</span>
           </div>
 
-          <h1 style={styles.title}>{concept.title}</h1>
-          <p style={styles.hook}>{concept.hook}</p>
+          <h1 style={styles.title} className="tb-title">
+            {concept.title}
+          </h1>
+          <p style={styles.hook} className="tb-hook">
+            {concept.hook}
+          </p>
 
           <div style={styles.divider} />
 
           {concept.body.split("\n\n").map((paragraph, i) => (
-            <p key={i} style={styles.body}>
+            <p key={i} style={styles.body} className="tb-body">
               {paragraph}
             </p>
           ))}
 
-          <div style={styles.analogyCard}>
+          <div style={styles.analogyCard} className="tb-analogy">
             <div style={styles.analogyIcon}>{concept.analogy.icon}</div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={styles.analogyTitle}>{concept.analogy.title}</div>
               <div style={styles.analogyText}>{concept.analogy.text}</div>
             </div>
@@ -132,14 +140,14 @@ export default function TechByte({ concept }) {
 
           <div style={styles.tradeoffGrid}>
             {concept.tradeoffs.map((t, i) => (
-              <div key={i} style={styles.tradeoffItem}>
+              <div key={i} style={styles.tradeoffItem} className="tb-tradeoff">
                 <div style={styles.tradeoffLabel}>{t.label}</div>
                 <div style={styles.tradeoffText}>{t.text}</div>
               </div>
             ))}
           </div>
 
-          <div style={styles.ctaArea}>
+          <div style={styles.ctaArea} className="tb-cta-sticky">
             <div style={styles.progressBar}>
               <div style={{ ...styles.progressFill, width: `${readProgress}%` }} />
             </div>
@@ -147,7 +155,8 @@ export default function TechByte({ concept }) {
             <button
               style={{ ...styles.btn, opacity: readProgress > 60 ? 1 : 0.4 }}
               onClick={() => readProgress > 60 && setStage(STAGES.QUIZ)}
-              className="btn-hover"
+              className="btn-hover tb-btn"
+              aria-disabled={readProgress <= 60}
             >
               開始驗證理解 →
             </button>
@@ -156,7 +165,7 @@ export default function TechByte({ concept }) {
       )}
 
       {stage === STAGES.QUIZ && (
-        <div style={styles.page} className="fade-in">
+        <div style={styles.page} className="fade-in tb-page">
           <div style={styles.quizHeader}>
             <div style={styles.qProgress}>
               {concept.questions.map((_, i) => (
@@ -173,7 +182,9 @@ export default function TechByte({ concept }) {
             <span style={styles.qType}>{q.type}</span>
           </div>
 
-          <h2 style={styles.question}>{q.question}</h2>
+          <h2 style={styles.question} className="tb-question">
+            {q.question}
+          </h2>
 
           <div style={styles.options}>
             {q.options.map((opt) => {
@@ -193,24 +204,32 @@ export default function TechByte({ concept }) {
               }
 
               return (
-                <div
+                <button
                   key={opt.id}
+                  type="button"
                   style={{ ...styles.option, borderColor, background: bg }}
                   onClick={() => !confirmed && setSelected(opt.id)}
-                  className={!confirmed ? "option-hover" : ""}
+                  className={`tb-option ${!confirmed ? "option-hover" : ""}`}
+                  disabled={confirmed}
+                  aria-pressed={selected === opt.id}
                 >
-                  <span style={styles.optionLetter}>{opt.id.toUpperCase()}</span>
-                  <span style={styles.optionText}>{opt.text}</span>
+                  <span style={styles.optionLetter} className="tb-option-letter">
+                    {opt.id.toUpperCase()}
+                  </span>
+                  <span style={styles.optionText} className="tb-option-text">
+                    {opt.text}
+                  </span>
                   {confirmed && opt.correct && <span style={styles.badge}>✅</span>}
                   {confirmed && selected === opt.id && !opt.correct && (
                     <span style={styles.badge}>❌</span>
                   )}
-                </div>
+                </button>
               );
             })}
 
             {/* 我不確定答案 — 獨立樣式區隔 */}
-            <div
+            <button
+              type="button"
               style={{
                 ...styles.unsureOption,
                 borderColor:
@@ -226,18 +245,21 @@ export default function TechByte({ concept }) {
                 opacity: confirmed && !isUnsureSelected ? 0.4 : 1,
                 cursor: confirmed ? "default" : "pointer",
               }}
+              className="tb-option"
+              disabled={confirmed}
               onClick={() => !confirmed && setSelected(UNSURE_ID)}
+              aria-pressed={selected === UNSURE_ID}
             >
               <span style={styles.unsureIcon}>🤔</span>
               <span style={styles.unsureText}>我不確定答案</span>
               {confirmed && isUnsureSelected && (
                 <span style={styles.badge}>👀</span>
               )}
-            </div>
+            </button>
           </div>
 
           {confirmed && (
-            <div style={styles.explanation} className="fade-in">
+            <div style={styles.explanation} className="fade-in tb-explain">
               <div style={styles.explainHeader}>{explainHeader}</div>
               <p style={styles.explainText}>{q.explanation}</p>
               <div style={styles.misconception}>
@@ -247,17 +269,18 @@ export default function TechByte({ concept }) {
             </div>
           )}
 
-          <div style={styles.quizActions}>
+          <div style={styles.quizActions} className="tb-cta-sticky">
             {!confirmed ? (
               <button
                 style={{ ...styles.btn, opacity: selected ? 1 : 0.3 }}
                 onClick={handleConfirm}
-                className={selected ? "btn-hover" : ""}
+                className={`tb-btn ${selected ? "btn-hover" : ""}`}
+                disabled={!selected}
               >
                 確認答案
               </button>
             ) : (
-              <button style={styles.btn} onClick={handleNext} className="btn-hover">
+              <button style={styles.btn} onClick={handleNext} className="btn-hover tb-btn">
                 {currentQ + 1 < concept.questions.length ? "下一題 →" : "查看結果 →"}
               </button>
             )}
@@ -266,11 +289,11 @@ export default function TechByte({ concept }) {
       )}
 
       {stage === STAGES.RESULT && (
-        <div style={styles.page} className="fade-in">
-          <div style={styles.resultIcon}>
+        <div style={styles.page} className="fade-in tb-page">
+          <div style={styles.resultIcon} className="tb-result-icon">
             {score === concept.questions.length ? "🏆" : score >= 2 ? "💪" : "📖"}
           </div>
-          <h2 style={styles.resultTitle}>
+          <h2 style={styles.resultTitle} className="tb-result-title">
             {score === concept.questions.length
               ? "完全掌握！"
               : score >= 2
@@ -302,9 +325,11 @@ export default function TechByte({ concept }) {
           </div>
 
           {nextConcept && (
-            <div style={styles.resultNextBox}>
+            <div style={styles.resultNextBox} className="tb-next-box">
               <div style={styles.resultNextLabel}>明天學什麼</div>
-              <div style={styles.resultNextTitle}>{nextConcept.title}</div>
+              <div style={styles.resultNextTitle} className="tb-next-title">
+                {nextConcept.title}
+              </div>
               <div style={styles.resultNextSub}>
                 {nextConcept.analogyHint}——{nextConcept.hook}
               </div>
@@ -314,7 +339,7 @@ export default function TechByte({ concept }) {
           <button
             style={{ ...styles.btn, marginTop: 24 }}
             onClick={handleRestart}
-            className="btn-hover"
+            className="btn-hover tb-btn"
           >
             🔁 重新閱讀概念
           </button>
@@ -342,7 +367,7 @@ const styles = {
     fontFamily: "'Courier New', monospace",
   },
   dayBadge: { fontSize: 12, color: "#666", letterSpacing: 1 },
-  streak: { fontSize: 12, color: "#999" },
+  metaRight: { fontSize: 12, color: "#666", letterSpacing: 0.5 },
   page: { padding: "16px 28px 32px" },
   tagRow: {
     display: "flex",
@@ -469,6 +494,10 @@ const styles = {
     padding: "14px 18px",
     cursor: "pointer",
     transition: "all 0.15s",
+    width: "100%",
+    textAlign: "left",
+    font: "inherit",
+    color: "inherit",
   },
   optionLetter: {
     width: 26,
@@ -494,6 +523,10 @@ const styles = {
     padding: "14px 18px",
     marginTop: 6,
     transition: "all 0.15s",
+    width: "100%",
+    textAlign: "left",
+    font: "inherit",
+    color: "inherit",
   },
   unsureIcon: { fontSize: 18, flexShrink: 0 },
   unsureText: {
