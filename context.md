@@ -118,7 +118,7 @@
 
 ---
 
-## 5. 已完成的概念（Day 1-16）
+## 5. 已完成的概念（Day 1-25）
 
 | Day | 標題 | Tag |
 |---|---|---|
@@ -138,26 +138,21 @@
 | 14 | Cache 策略 | 效能 |
 | 15 | Rate Limiting | 安全 |
 | 16 | Closure（閉包） | 程式設計 |
+| 17 | Mutability vs Immutability | 程式設計 |
+| 18 | Race Condition | 並發 |
+| 19 | Big-O 複雜度 | 演算法 |
+| 20 | Composition vs Inheritance | 程式設計 |
+| 21 | Static vs Dynamic Typing | 型別系統 |
+| 22 | Mock / Stub / Spy | 測試 |
+| 23 | Garbage Collection | 工程 |
+| 24 | Idempotency | API 設計 |
+| 25 | Hashing vs Encryption | 安全 |
 
 ---
 
-## 6. 待寫概念（Day 17-25，已確認方向）
+## 6. 待寫概念
 
-使用者要求「多一點純軟相關」，所以 Day 17-25 偏程式設計 / 軟體工程，只留兩個延續原本路線（Idempotency、Hashing vs Encryption）。
-
-| Day | 主題 | Tag | Hook | 類比方向 |
-|---|---|---|---|---|
-| 17 | Mutability vs Immutability | 程式設計 | React state 為什麼不能 `array.push`，要用 setState? | 影印一份再改 vs 直接改原稿 |
-| 18 | Race Condition | 並發 | 兩個非同步請求為什麼會「神奇地」蓋掉彼此? | 兩人同時拿冰箱最後一瓶 |
-| 19 | Big-O 複雜度 | 演算法 | 100 萬筆資料用 for 跑為什麼要 10 分鐘? | 字典查字 vs 一頁一頁翻 |
-| 20 | Composition vs Inheritance | 程式設計 | 為什麼前輩都說「不要繼承，用組合」? | 繼承房子（連缺陷）vs 自選裝潢 |
-| 21 | Static vs Dynamic Typing | 型別系統 | TypeScript 在 runtime 根本不存在，為什麼還那麼有用? | 蓋房前看藍圖 vs 邊蓋邊改 |
-| 22 | Mock / Stub / Spy | 測試 | 三個都是「假的測試對象」，差別到底在哪? | 模特兒 / 道具 / 監視器 |
-| 23 | Garbage Collection | 工程 | 有 GC 為什麼 JS / Java 程式還會 memory leak? | 自動掃地機掃不到沙發底下 |
-| 24 | Idempotency | API 設計 | 為什麼支付按兩次有時候會扣兩次錢? | 電梯按鈕 vs 投幣機 |
-| 25 | Hashing vs Encryption | 安全 | 為什麼密碼資料庫被偷，公司還能說「密碼是安全的」? | 絞肉機 vs 保險箱 |
-
-每篇按 v2 結構寫齊：hook、body（2 段）、analogy、originStory、example（語言性概念才放）、tradeoffs、oneLiner、3 題 quiz、furtherReading。
+Day 1-25 全部完成。Day 26+ 尚未規劃主題。
 
 ---
 
@@ -385,16 +380,14 @@ create policy "users see own attempts" on attempts
 
 ## 17. Quick Status Snapshot（截至 2026-05-09）
 
-- ✅ Day 1-16 全部 v2 結構完成（最後一筆是 Day 16 Closure，當作 v2 樣板）
+- ✅ Day 1-25 全部 v2 結構完成（Day 17-25 於本 session 完成）
 - ✅ Daily release lock 已上 production
 - ✅ Auth 已切到 username + password（Supabase 設定使用者已關 confirm email）
 - ✅ /map 已重做為 grouped list
 - ✅ 全頁面手機 UX 優化已上
 - ✅ 首頁 day list 重設計（軟調 + 大數字 + 強 today highlight）已上
-- 🚧 **目前在 branch 但未 merge**: PR #?（commit `bc1b3f6`）= Day 1-15 backfill v2 欄位 + Day 16 樣板 + TechByte 渲染新欄位
-- ⏸ Day 17-25 內容待寫（主題已定，結構齊備）
 
-**下一步**: 從 v2 backfill 那個 PR review 完並 merge → 開始寫 Day 17-25 → 寫完一次 ship。
+**下一步**: 規劃 Day 26+ 主題 / 其他 backlog 功能（streak、share card 等）。
 
 ---
 

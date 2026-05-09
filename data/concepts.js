@@ -1412,6 +1412,861 @@ b(); // 1  ← b 有自己的 n，不共享`,
       },
     ],
   },
+  {
+    day: 17,
+    tag: "程式設計",
+    title: "Mutability vs Immutability",
+    hook: "React state 為什麼不能直接 array.push，一定要用 setState？",
+    body: `你寫 React 時，最常犯的錯之一：拿到一個 state array，直接 push 一個元素進去，結果畫面沒更新。不是 bug，是設計——React 靠「這個 reference 有沒有換」來決定要不要重新 render。你改了裡面的值但 reference 沒換，React 根本不知道你動過它。
+
+Immutability 的核心概念不是「不能改資料」，而是「要改，就建立一份新的」。不改原本那份——你 spread 一個新陣列，回傳新的物件，讓原本那份留著當歷史紀錄。這樣才能做時光回溯（undo）、才能高效 diff、才能避免一堆「我改了這個但那邊怎麼也跑掉了」的神奇 bug。代價是每次操作都多一次記憶體 allocation，資料量大時要搭配 structural sharing（Immer 背後就是這個）才不爆。`,
+    analogy: {
+      icon: "📄",
+      title: "影印一份再改 vs 直接改原稿",
+      text: "Mutable 像直接在原稿上塗改——快，但改完沒有「上一版」了，旁邊拿同一份文件的人也會被你影響。Immutable 像影印一份再在新稿上改——多花一秒，但原稿永遠在，任何人任何時間都能對照舊版。",
+    },
+    analogyHint: "影印一份再改 vs 直接改原稿",
+    originStory:
+      "Immutability 的學術根源是 1950-60 年代的函式式語言（Lisp、Haskell），但在主流程式圈沉寂很久。2013 年 React 推出後，把「不要直接改 state」變成日常守則；2015 年 Redux 更把 immutable reducer 推成標準模式。同年 Facebook 釋出 Immutable.js，提供 persistent data structure，讓 JS 也能「改了卻不需要複製整個 array」。現代工具 Immer 用 Proxy 讓你寫起來像 mutable，背後自動幫你建新的 immutable 版本——最終演化成「你不需要寫 spread，但不可變的規則還是要遵守」。",
+    example: {
+      code: `// ❌ Mutable：直接改，React 不知道你動了
+const arr = state.items;
+arr.push(newItem);
+setState(arr); // 同一個 reference，沒效
+
+// ✅ Immutable：建新陣列，reference 換了
+setState([...state.items, newItem]);
+
+// ✅ Immer：寫起來像 mutable，實際不可變
+setState(produce(state, draft => {
+  draft.items.push(newItem); // 安全
+}));`,
+      note: "三種寫法都能加元素；差別在 React 有沒有感知到「你改了」。spread 和 produce 都會建立新 reference，React 才會 re-render。",
+    },
+    tradeoffs: [
+      { label: "✅ 適合", text: "React / Redux state、需要 undo/redo、跨多處共享的資料結構" },
+      { label: "⚠️ 注意", text: "每次操作都建新物件，資料量大時要用 structural sharing（Immer / Immutable.js）而不是暴力 spread" },
+      { label: "❌ 不適合", text: "純演算法的熱迴圈（如 in-place sort）、大量數值計算——這裡 mutable 就是對的選擇" },
+    ],
+    oneLiner:
+      "要改 state，就建一份新的——不改原本那份，讓 React 看見「reference 換了」才知道要 re-render。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "React 為什麼檢測到 state 沒變就不 re-render？",
+        options: [
+          { id: "a", text: "因為 React 會深度比對每個 property 的值", correct: false },
+          { id: "b", text: "因為 React 只比較 object reference（===），reference 沒換就視為沒變", correct: true },
+          { id: "c", text: "因為 React 有 dirty flag 系統追蹤哪些欄位被改", correct: false },
+        ],
+        explanation:
+          "React 的 state 比較是 shallow equality（Object.is / ===）——它只看「你給我的這個物件跟上次是不是同一個」。深度比對每個 property 太貴，1000 個 component 同時比的話 UI 會卡死。所以才需要 immutability：你 spread 一個新陣列，reference 換了，React 就知道要 re-render。",
+        misconception: "React 不會幫你深比對——它只比 reference，效能才跟得上。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你要在 Redux reducer 裡刪除一個 item。下面哪個做法正確？",
+        options: [
+          { id: "a", text: "state.items.splice(index, 1); return state;", correct: false },
+          { id: "b", text: "return { ...state, items: state.items.filter(i => i.id !== id) };", correct: true },
+          { id: "c", text: "delete state.items[index]; return state;", correct: false },
+        ],
+        explanation:
+          "splice 和 delete 都是 mutable 操作，改的是原本的 state array，Redux 的 reference 不變，UI 不更新、time-travel 也會壞掉。filter 回傳新陣列，spread 一個新 state 物件，新 reference 進來，Redux 才能偵測到 state 變了。",
+        misconception: "splice 是 in-place 操作，在 reducer 裡用是常見錯誤，偶爾 work 只是湊巧 re-render 被其他更新觸發了。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「Immutability 就是用 const，宣告了就不能改。」這說法對嗎？",
+        options: [
+          { id: "a", text: "對，const 宣告的物件不能修改", correct: false },
+          { id: "b", text: "不對，const 只防止 re-assign，物件內部的 property 還是可以改", correct: true },
+          { id: "c", text: "對，所以要用 let 才能改 state", correct: false },
+        ],
+        explanation:
+          "const 只保護「binding」不被重新指向，不保護「物件的內容」。const arr = [1,2,3]; arr.push(4) 完全合法。真正的 immutability 是一種「操作習慣」：不改原本的，要改就建新的。Object.freeze() 可以淺層凍結，但深層結構還是得靠自律或工具。",
+        misconception: "const ≠ immutable。這是 JS 初學者最常踩的語義陷阱。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "Immer 官方文件",
+        url: "https://immerjs.github.io/immer/",
+        why: "讓你用 mutable 語法寫出 immutable 結果，是 React / Zustand / Redux Toolkit 的幕後功臣",
+      },
+      {
+        title: "Redux 風格指南 — Do Not Mutate State",
+        url: "https://redux.js.org/style-guide/#do-not-mutate-state",
+        why: "官方解釋為什麼 mutation 會讓 Redux 壞掉，搭配 devtools time-travel 範例說明",
+      },
+    ],
+  },
+  {
+    day: 18,
+    tag: "並發",
+    title: "Race Condition",
+    hook: "兩個非同步請求，為什麼後發的竟然會蓋掉先發的結果？",
+    body: `你做了一個搜尋欄位：使用者打「a」發一次 API，打「ab」再發一次。API 是網路的，回來的順序不保證——「a」的結果可能比「ab」晚到，最後畫面停在「a」的舊結果。這就是 race condition：兩段 code 同時跑、最後誰的結果生效取決於誰先完成，而這件事你控制不了。
+
+Race condition 之所以讓人頭痛，是因為它幾乎不可複現——本機跑很快、QA 環境也沒問題，但使用者網路一卡就出現。解法不是讓請求變快，而是讓「後來的請求」知道自己已經過時。最乾淨的方式是 abort 機制：每次新請求前，取消舊的那個（AbortController in Fetch / Axios cancellation）。或者用 flag 追蹤「這個 closure 是不是還有效」——update 前先檢查，舊的直接丟棄。`,
+    analogy: {
+      icon: "🍾",
+      title: "兩人同時拿冰箱最後一瓶啤酒",
+      text: "你和室友同時打開冰箱，看到最後一瓶，都伸手去拿——誰先抓到誰的。Race condition 就是這種「兩個操作都以為自己能成功，卻沒想到另一個也在跑」的衝突。單執行緒的 JS 表面上沒這問題，但非同步 callback 回來的時間不確定，效果一樣。",
+    },
+    analogyHint: "兩人同時拿冰箱最後一瓶",
+    originStory:
+      "Race condition 是 1965 年就有名字的問題，最早出現在作業系統教科書的多執行緒章節。前端長期不怎麼在意——JS 是單執行緒、沒有「真正的」並發。但 2010 年代後，SPA + AJAX 讓大量非同步請求變成常態，前端的 race condition 才從「後端問題」變成每個 React 開發者的日常噩夢。React 18 的 Suspense + Concurrent Mode 部分解法就是讓 React 自己管理「這個 render 是不是還有效」，減少使用者自己處理的 race。",
+    example: {
+      code: `// ❌ 有 race condition 的搜尋
+useEffect(() => {
+  fetchResults(query).then(data => setResults(data));
+}, [query]);
+
+// ✅ 用 AbortController 取消舊請求
+useEffect(() => {
+  const controller = new AbortController();
+  fetchResults(query, { signal: controller.signal })
+    .then(data => setResults(data))
+    .catch(err => { if (err.name !== 'AbortError') throw err; });
+  return () => controller.abort(); // cleanup：組件 unmount 或 query 變了就取消
+}, [query]);`,
+      note: "cleanup function 是 useEffect 的回傳值，在下次 effect 執行前自動呼叫。每次 query 變，舊的 fetch 被 abort，只有最新那個能寫入 state。",
+    },
+    tradeoffs: [
+      { label: "✅ 正確解法", text: "AbortController（Fetch）、axios cancelToken、或 flag 檢查（let cancelled = false）——讓舊 closure 知道自己過時" },
+      { label: "⚠️ 注意", text: "debounce 可以減少請求次數，但不是 race condition 的根治——網路慢時還是會發生" },
+      { label: "❌ 常見錯誤", text: "以為「加 loading 狀態」就解決了——loading 只是 UI 效果，不阻止舊請求蓋掉新的" },
+    ],
+    oneLiner:
+      "Race condition 是「兩個非同步操作的完成順序你控制不了」——解法是讓過時的那個知道自己已經沒用了。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "為什麼 JavaScript 是單執行緒，還會有 race condition？",
+        options: [
+          { id: "a", text: "因為 JS 其實有多執行緒，只是隱藏起來", correct: false },
+          { id: "b", text: "因為非同步操作（fetch、setTimeout）的 callback 回來的時間不確定，順序由外部決定", correct: true },
+          { id: "c", text: "因為 React 的 useState 有 bug", correct: false },
+        ],
+        explanation:
+          "JS 的 event loop 讓它一次只跑一段同步 code，但非同步操作的「完成」是由網路、timer、OS 決定的——你無法控制兩個 fetch 誰先回來。這種不確定性就夠製造 race condition，不需要真的多執行緒。",
+        misconception: "單執行緒 ≠ 沒有並發問題。非同步就夠了。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你加了 debounce（等使用者停止打字 300ms 才發 API），race condition 解掉了嗎？",
+        options: [
+          { id: "a", text: "是，debounce 讓請求變少，不會再有衝突", correct: false },
+          { id: "b", text: "不完全，debounce 只減少請求數，但那 300ms 後發出的請求仍可能比前一個更早回來", correct: true },
+          { id: "c", text: "是，debounce 讓請求序列化，後一個等前一個完成才發", correct: false },
+        ],
+        explanation:
+          "Debounce 減少「多少個請求」的問題，不解決「哪個先回來」的問題。如果使用者在 debounce 期間改了兩次 query，你只發一個請求——但如果網路慢，先前因為使用者快速打字漏網的請求還在飛，一樣會 race。Debounce 是優化，不是解法。",
+        misconception: "Debounce 和 abort 是不同層次的工具，搭配用最穩。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「這個 bug 本機從來不出現，一定不是 race condition。」這說法可信嗎？",
+        options: [
+          { id: "a", text: "可信，本機能穩定重現才算真正的 bug", correct: false },
+          { id: "b", text: "不可信，race condition 依賴網路延遲，本機 localhost 幾乎沒延遲所以幾乎不出現", correct: true },
+          { id: "c", text: "可信，現代瀏覽器已經保證 fetch 的回傳順序", correct: false },
+        ],
+        explanation:
+          "Race condition 在本機不出現是正常的——localhost 延遲 < 1ms，幾乎所有請求都照發出順序回來。生產環境加上真實網路延遲、CDN、慢速裝置，才會翻車。「本機沒問題」反而是 race condition 的典型特徵，不是排除依據。",
+        misconception: "Race condition 是機率問題，不是「有沒有」的問題——本機不出現不代表不存在。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "React 官方文件 — Fetching Data（useEffect）",
+        url: "https://react.dev/learn/synchronizing-with-effects#fetching-data",
+        why: "官方直接示範 cleanup + AbortController 的正確寫法，是學 race condition 最短路徑",
+      },
+      {
+        title: "JavaScript Event Loop 視覺化（Jake Archibald: In The Loop）",
+        url: "https://www.youtube.com/watch?v=cCOL7MC4Pl0",
+        why: "看完才真正理解 JS 為什麼「單執行緒卻能非同步」，是 event loop 最好的解說",
+      },
+    ],
+  },
+  {
+    day: 19,
+    tag: "演算法",
+    title: "Big-O 複雜度",
+    hook: "100 萬筆資料，for 迴圈跑完要幾秒？換個寫法，瞬間完成。",
+    body: `Big-O 是在問：「資料量變大，這段 code 會慢多少？」不是精確計時，而是描述「增長的形狀」。O(n) 代表資料量翻倍、時間翻倍；O(n²) 代表資料量翻倍、時間變四倍。100 萬筆資料，O(n) 跑 1 秒，O(n²) 要跑 11 天。
+
+你不需要會推導數學，但你得認識幾個常見的形狀。O(1) 是 hash map 查值——不管 1 筆還是 10 億筆都一樣快。O(log n) 是 binary search——每次把問題砍半，100 萬筆只需要 20 步。O(n log n) 是大部分排序演算法。O(n²) 是兩層 for loop，資料量一大就凍結。日常 code review 時，看到兩層 for loop 就要問：「這 n 有多大？」`,
+    analogy: {
+      icon: "📖",
+      title: "字典查字 vs 一頁一頁翻",
+      text: "O(log n) 像查字典——你知道字母順序，每次翻到中間判斷要往前還是往後，幾步就找到。O(n) 像從頭一頁一頁翻——最壞要翻完全部。O(n²) 像每翻一頁都要再從頭比對一次——資料越多越不可能用。",
+    },
+    analogyHint: "字典查字 vs 一頁一頁翻",
+    originStory:
+      "Big-O notation 來自 1894 年數學家 Paul Bachmann，不是電腦科學的發明。1960-70 年代 Donald Knuth 在《The Art of Computer Programming》把它系統化為分析演算法的語言，才成為 CS 標準工具。現代面試大量考 Big-O 是 Google 2000 年代擴張工程師規模後帶起的風氣——他們需要快速篩出能想清楚演算法的人，Big-O 成了共同語言。批評者說「LeetCode 刷題式的 Big-O 面試跟實際工作脫節」，但作為粗估「這個解法能不能用在生產資料量上」的工具，它還是最快的思維框架。",
+    example: {
+      code: `// O(n²)：找重複——對每個元素都掃一遍陣列
+function hasDuplicateSlow(arr) {
+  for (let i = 0; i < arr.length; i++)
+    for (let j = i + 1; j < arr.length; j++)
+      if (arr[i] === arr[j]) return true;
+  return false;
+}
+
+// O(n)：用 Set，查詢是 O(1)
+function hasDuplicateFast(arr) {
+  const seen = new Set();
+  for (const x of arr) {
+    if (seen.has(x)) return true;
+    seen.add(x);
+  }
+  return false;
+}
+// 10 萬筆：慢的 ~100 億次操作，快的 ~10 萬次`,
+      note: "把 O(n²) 換成 O(n) 的關鍵常常是「用空間換時間」——多用一個 hash set / map，查詢從線性變常數。",
+    },
+    tradeoffs: [
+      { label: "✅ Big-O 的用途", text: "快速估算「這個資料量下，這個解法 hold 得住嗎」——不是精確計時，是在寫 code 前就能預測的思維工具" },
+      { label: "⚠️ 注意", text: "Big-O 忽略常數，O(n) 的實際時間可能比 O(log n) 快——n 夠小時演算法複雜度不是瓶頸，常數係數才是" },
+      { label: "❌ 不要過度套用", text: "5 筆資料的 UI 設定、每次只跑一次的 init 邏輯——不需要為了 Big-O 把簡單的 code 改得很複雜" },
+    ],
+    oneLiner:
+      "Big-O 是問「資料量大十倍，時間變多少」——它不量絕對速度，它量增長的形狀。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "下面哪個操作是 O(1)（常數時間）？",
+        options: [
+          { id: "a", text: "在排序好的陣列裡用 binary search 找一個值", correct: false },
+          { id: "b", text: "用 JavaScript 的 Map.get(key) 查值", correct: true },
+          { id: "c", text: "在陣列頭部 unshift 插入一個元素", correct: false },
+        ],
+        explanation:
+          "Map.get() 是 hash table 查詢，平均 O(1)——不管 map 有 10 個還是 1000 萬個 entry，查詢時間基本固定。Binary search 是 O(log n)，比線性快但不是常數。Array.unshift 要把所有元素往後移，是 O(n)。",
+        misconception: "Hash map 的 O(1) 是平均值，最壞情況（hash collision 極端場景）可退化到 O(n)，但實務上幾乎不會發生。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你要在一個有 100 萬個用戶的 list 裡，檢查某個 email 有沒有被用過。最適合的資料結構？",
+        options: [
+          { id: "a", text: "陣列，用 Array.includes() 掃一遍", correct: false },
+          { id: "b", text: "Set 或 Map，查詢是 O(1)", correct: true },
+          { id: "c", text: "先排序再 binary search，O(log n) 夠快了", correct: false },
+        ],
+        explanation:
+          "Array.includes 是 O(n)，100 萬個每次查詢要掃 100 萬次；如果每個新用戶都要查一次，就是 O(n²)。Set 的 has() 平均 O(1)。Binary search 雖然是 O(log n)，但維護排序本身是 O(n log n)，且動態插入維持排序不容易。資料庫的做法是加 index——背後也是類似的 hash / B-tree 結構。",
+        misconception: "陣列「裝得下」不代表「查得快」——容量和查詢複雜度是兩回事。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「我的函式是 O(n log n)，比你的 O(n) 還差，要換掉。」這判斷一定對嗎？",
+        options: [
+          { id: "a", text: "對，O(n) 永遠比 O(n log n) 快", correct: false },
+          { id: "b", text: "不一定，Big-O 忽略常數係數，n 小的情況下 O(n log n) 可能反而更快", correct: true },
+          { id: "c", text: "對，應該永遠追求最低的 Big-O", correct: false },
+        ],
+        explanation:
+          "Big-O 忽略常數：O(1000n) 還是 O(n)，但比 O(0.001 n log n) 慢很多。如果 n 只有 100、1000，兩個演算法的實際時間差幾乎感覺不到——這時候 code 的清晰度、cache locality、常數係數才是重點。Big-O 是在 n 趨近無限大時的漸近行為，不是小資料量的金科玉律。",
+        misconception: "Big-O 只告訴你「n 很大時的趨勢」，不告訴你「n = 100 時哪個快」。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "Big-O Cheat Sheet",
+        url: "https://www.bigocheatsheet.com/",
+        why: "一頁總覽常見資料結構和演算法的時間/空間複雜度，面試前貼在牆上",
+      },
+      {
+        title: "CS50 Lecture 3 — Algorithms（Harvard）",
+        url: "https://cs50.harvard.edu/x/2024/weeks/3/",
+        why: "David Malan 用生活比喻把 search / sort 的複雜度講得讓非CS背景也懂，免費觀看",
+      },
+    ],
+  },
+  {
+    day: 20,
+    tag: "程式設計",
+    title: "Composition vs Inheritance",
+    hook: "為什麼前輩都說「不要繼承，用組合」，但課本都在教繼承？",
+    body: `Inheritance（繼承）的直覺是：狗是動物，所以 Dog extends Animal——複用程式碼、建立階層。問題出在你的系統長大之後：你想要一隻「會游泳但不會飛的狗」、「會飛但不是鳥的機器人」，繼承鏈一定得設計幾層才能包住所有組合？繼承是樹狀的，現實是網狀的——需求一變，整棵樹都要重構。
+
+Composition 的思路不一樣：不問「它是什麼」，問「它能做什麼」。一個物件的能力是「組裝」進去的，不是「繼承」來的。一隻可以游泳的狗 = Dog + canSwim。一個可以飛的機器人 = Robot + canFly。每個能力是獨立的模組，可以任意組合、單獨測試、隨時換掉。這就是 Go 的 interface、Rust 的 trait、React hooks 的設計哲學——「組合行為，不建繼承樹」。`,
+    analogy: {
+      icon: "🏠",
+      title: "繼承一棟舊房子 vs 自己選裝潢",
+      text: "繼承像從爸媽那繼承一棟房子——帶著所有裝修、所有缺陷、所有隔間，你沒選擇過。想改一面牆可能得動整棟。組合像自己租一個毛坯空間，沙發、燈具、書架一件一件自己選——每樣東西都可以換，不影響其他的。",
+    },
+    analogyHint: "繼承一棟舊房子 vs 自選裝潢",
+    originStory:
+      "Inheritance 是 1960 年代 Simula 語言的核心概念，1980-90 年代 C++、Java 把 OOP 帶入主流時成為「設計正確性」的象徵。但 1994 年《Design Patterns》（四人幫）就已經寫下：「Favor object composition over class inheritance」，只是沒被主流教科書重視。直到 2010 年代後——Go 不提供 class inheritance、React 16 hooks 取代 HOC/class component、Rust 以 trait 代替繼承——「少用繼承」才從圈內觀念變成主流語言的設計選擇。",
+    example: {
+      code: `// ❌ 繼承：想要「會游泳的機器人」時繼承鏈爆炸
+class Animal { }
+class Dog extends Animal { swim() {} }
+class Robot { }
+// 機器人也想 swim？沒辦法繼承兩個...
+
+// ✅ 組合：把「能力」做成 mixin / hook
+const canSwim = { swim() { console.log('splash'); } };
+const canFly  = { fly()  { console.log('whoosh'); } };
+
+const dog   = Object.assign({}, canSwim);
+const drone = Object.assign({}, canFly, canSwim); // 隨意組合`,
+      note: "能力拆成獨立模組後，可以單獨測試每個模組、自由組合，不需要管繼承層級。React hooks（useSwim、useFly）是同一個思路的現代版。",
+    },
+    tradeoffs: [
+      { label: "✅ 用組合", text: "功能跨越多個概念、需要靈活組合、各能力要獨立測試——這是大多數業務邏輯的場景" },
+      { label: "⚠️ 繼承也有用", text: "真正的 is-a 關係（UIButton extends UIView）、框架設計的 lifecycle hook 擴充——繼承在這裡語意清楚" },
+      { label: "❌ 避免", text: "為了複用程式碼而繼承（沒有 is-a 語意）、繼承超過兩層、多重繼承——這是技術債的常見起源" },
+    ],
+    oneLiner:
+      "繼承問「它是什麼」；組合問「它能做什麼」——能力拆開組裝，比繼承樹更容易擴充。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "「Favor composition over inheritance」這句話，主要是在解決什麼問題？",
+        options: [
+          { id: "a", text: "效能問題，組合比繼承快", correct: false },
+          { id: "b", text: "彈性問題，繼承樹在需求變化時難以重構，組合的能力模組可以自由替換", correct: true },
+          { id: "c", text: "語法問題，extends 語法太複雜", correct: false },
+        ],
+        explanation:
+          "效能不是重點——兩者在大部分場景差異微乎其微。核心問題是彈性：繼承建立剛性的 is-a 關係，一旦需求變了（「機器人也要會游泳」）就得重設計整棵樹。組合讓你在不動既有程式碼的情況下新增能力，也更容易寫單元測試。",
+        misconception: "「用組合」不代表「不能用 class」——class 內部組合其他物件，是很常見的正確寫法。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你在寫 React，想讓三個不同 component 共享「取得使用者資料 + loading 狀態」的邏輯，你選哪個？",
+        options: [
+          { id: "a", text: "建一個 BaseComponent class，三個都 extends 它", correct: false },
+          { id: "b", text: "寫一個 custom hook useUserData()，三個 component 各自呼叫", correct: true },
+          { id: "c", text: "把邏輯複製三份，每個 component 各自維護", correct: false },
+        ],
+        explanation:
+          "Custom hook 是 React 的組合機制：邏輯抽成 hook，誰要用就呼叫，各自獨立、可測試、不共享 state。Class 繼承在 React 已是過時模式，hooks 出現就是為了取代它；邏輯複製三份是維護噩夢。",
+        misconception: "React hooks 的核心設計就是「組合邏輯」而非「繼承元件」。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「我用組合，所以我把所有功能都放進一個有 50 個方法的 class 裡，每個實例只用到其中幾個。」這是正確的組合嗎？",
+        options: [
+          { id: "a", text: "是，這樣所有功能都在一個地方，很方便", correct: false },
+          { id: "b", text: "不是，組合是把功能拆成小模組再組裝，不是把所有功能堆在同一個 class", correct: true },
+          { id: "c", text: "是，只要不用 extends 就算組合", correct: false },
+        ],
+        explanation:
+          "「50 個方法塞一個 class」是上帝物件（God Object）——它違反的不是繼承原則，而是單一職責原則（SRP）。正確的組合是：把「游泳」「飛行」「說話」各自做成小模組，誰需要哪個能力就把那個模組組進去，而不是一個大 class 什麼都會。",
+        misconception: "組合 ≠ 大雜燴。小模組組裝才是組合；堆在一起叫上帝物件。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "Gang of Four — Design Patterns（Favor composition 章節）",
+        url: "https://www.amazon.com/Design-Patterns-Elements-Reusable-Object-Oriented/dp/0201633612",
+        why: "1994 年就寫下這句話的原始來源，序言就值得讀",
+      },
+      {
+        title: "Composition vs Inheritance（Dan Abramov, React 官方）",
+        url: "https://legacy.reactjs.org/docs/composition-vs-inheritance.html",
+        why: "React 作者直接解釋為什麼 React 不推薦 class 繼承，用前端視角說得很清楚",
+      },
+    ],
+  },
+  {
+    day: 21,
+    tag: "型別系統",
+    title: "Static vs Dynamic Typing",
+    hook: "TypeScript 在 runtime 根本不存在，但它為什麼能讓大型專案不崩潰？",
+    body: `Static typing（靜態型別）在寫 code 的時候就檢查型別；dynamic typing（動態型別）在執行的時候才檢查。TypeScript 是前者——你的所有型別標記、interface、generic，在 tsc 編譯後全部消失，runtime 還是跑原本的 JavaScript。那它的價值在哪？它把「型別錯誤」從「上線後 user 遇到的 runtime crash」變成「開發時 IDE 立刻標紅的 compile error」。早發現早解決，省的是除錯成本。
+
+但靜態型別不是銀彈。Python 動態型別跑了幾十年、在 AI/資料科學界主導，因為快速原型比型別正確性更重要。動態型別讓你少寫很多 boilerplate，探索性 code 更快。真正的分水嶺是「這個 codebase 會活多久、多少人維護」——幾個人的小工具 dynamic 就好；幾百人的大型系統沒有型別等於沒有文件、沒有重構保障。`,
+    analogy: {
+      icon: "🏗️",
+      title: "蓋房前看藍圖 vs 邊蓋邊改",
+      text: "Static typing 像施工前審查藍圖——電線走哪、牆在哪，建之前就確認好，開蓋後才不用拆牆補線。Dynamic typing 像創意工作坊——先快速蓋出一個雛型，哪裡不對改哪裡，快速迭代。問題是，蓋到三層樓後才發現一樓的結構不對，代價就很大了。",
+    },
+    analogyHint: "蓋房前看藍圖 vs 邊蓋邊改",
+    originStory:
+      "靜態 vs 動態的爭論貫穿整個程式語言史。Fortran（1957）靜態型別；Lisp（1958）動態。1980-90 年代 C/C++/Java 靜態陣營主導企業軟體；2000 年代 Python、Ruby、JavaScript 動態陣營主導網路快速開發。2012 年 Microsoft 推出 TypeScript，讓 JS 開發者第一次在「動態語言」上加靜態層，開創了 gradual typing 路線。同期 Python 推出 type hints（PEP 484, 2015）——兩個最主流的動態語言都在補靜態型別，說明在大型系統上動態型別的維護成本已被業界廣泛認知。",
+    example: {
+      code: `// Dynamic（JavaScript）：執行時才知道型別錯了
+function getUser(id) {
+  return fetch('/users/' + id).then(r => r.json());
+}
+getUser(undefined); // 編譯不報錯，runtime 才爆
+
+// Static（TypeScript）：寫的時候就報錯
+function getUser(id: number): Promise<User> {
+  return fetch('/users/' + id).then(r => r.json());
+}
+getUser(undefined); // ❌ IDE 立刻紅線：Argument of type 'undefined' is not assignable`,
+      note: "TypeScript 編譯成 JS 後，那個 : number 就消失了。但它在「你寫 code 的那一刻」抓到了一個 runtime 才會爆的 bug。這就是 static typing 的核心價值。",
+    },
+    tradeoffs: [
+      { label: "✅ 靜態型別適合", text: "多人維護的大型 codebase、長期存活的系統、需要大膽重構時的安全網" },
+      { label: "⚠️ 動態型別的優勢", text: "快速原型、探索性 script、資料科學 / ML pipeline——靈活度換來開發速度" },
+      { label: "❌ 靜態型別的陷阱", text: "過度設計型別體操（complex generic hell）讓 code 比 bug 還難讀；any 滿天飛等於沒有型別" },
+    ],
+    oneLiner:
+      "靜態型別把「runtime 才發現的錯誤」變成「寫 code 時就知道」——代價是多寫型別標記，換來的是重構時的安全感。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "TypeScript 的型別標記在什麼時候存在？",
+        options: [
+          { id: "a", text: "全程都存在，包含 runtime，所以能防止 runtime 型別錯誤", correct: false },
+          { id: "b", text: "只在編譯階段（tsc）存在；編譯後的 JavaScript 沒有任何型別資訊", correct: true },
+          { id: "c", text: "只在 IDE 裡顯示，tsc 不會真的檢查", correct: false },
+        ],
+        explanation:
+          "TypeScript 是「compile-time type checker」，不是 runtime type system。tsc 把 TypeScript 轉成 JavaScript 時，所有型別標記都被抹掉。所以 TypeScript 無法防止你在 runtime 傳入錯誤型別的外部資料（例如 API response）——那要靠 zod / io-ts 等 runtime validation 工具。",
+        misconception: "TypeScript 不是 JavaScript 的超集 runtime——它是靜態分析工具，runtime 還是跑 JS 規則。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你要寫一個一次性的爬蟲腳本，執行 3 分鐘後就沒用了。你會選 TypeScript 還是 Python？",
+        options: [
+          { id: "a", text: "TypeScript，型別安全比較重要", correct: false },
+          { id: "b", text: "Python，一次性腳本不需要型別安全帶來的長期收益，快速寫完才重要", correct: true },
+          { id: "c", text: "都不行，應該用 Go 確保型別安全又夠快", correct: false },
+        ],
+        explanation:
+          "靜態型別的收益是「維護期間節省的除錯成本」。一個用完就丟的腳本沒有維護期，型別標記只是多餘的 overhead。Python 的生態（requests、BeautifulSoup、pandas）也比 TypeScript 更適合爬蟲場景。工具選型要看場景，不是越嚴格越好。",
+        misconception: "靜態型別是長期維護的投資，不是每個場景都划算。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「我們加了 TypeScript，所以 runtime 不會再有型別相關的 bug 了。」這說法對嗎？",
+        options: [
+          { id: "a", text: "對，TypeScript 會在 runtime 攔截型別錯誤", correct: false },
+          { id: "b", text: "不對，TypeScript 只在編譯時檢查；外部資料（API、用戶輸入）在 runtime 仍可能是錯誤型別", correct: true },
+          { id: "c", text: "對，只要型別標記夠完整就沒問題", correct: false },
+        ],
+        explanation:
+          "TypeScript 的型別在 runtime 不存在。最常見的漏洞：你標記 API response 是 User 型別，但 API 回來的 JSON 裡某個欄位是 null——TypeScript 信任你寫的型別，不會在 runtime 驗證。解法是搭配 runtime schema validation（zod.parse()、io-ts.decode()）在資料進入系統邊界時確認型別正確。",
+        misconception: "TypeScript 不能防禦系統邊界的外部資料——那是 runtime validation 的工作。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "TypeScript Handbook — The Basics",
+        url: "https://www.typescriptlang.org/docs/handbook/2/basic-types.html",
+        why: "官方文件，第一節就解釋「型別只在編譯期存在」，是最快建立正確心智模型的起點",
+      },
+      {
+        title: "Zod 官方文件",
+        url: "https://zod.dev/",
+        why: "TypeScript 最流行的 runtime validation 函式庫，解決「TypeScript 管不到的那層」",
+      },
+    ],
+  },
+  {
+    day: 22,
+    tag: "測試",
+    title: "Mock / Stub / Spy",
+    hook: "三個都叫「假的測試替代品」，但用錯了測試根本沒意義。",
+    body: `寫單元測試時，你的 code 常常依賴外部的東西——資料庫、API、email 服務、時間。這些東西不能真的在測試裡跑，所以要用「假的」替代。但假的有三種，用途完全不同：Stub 是「給固定答案的假物件」——你問它 getUser(1)，它永遠回 { id: 1, name: 'Alice' }，不管你問什麼。Mock 是「有預期的假物件」——你設定它預計被呼叫幾次、帶什麼參數，測試結束時它會驗證這些預期有沒有實現。Spy 是「監視真實物件的工具」——真實的函式還是會跑，但 spy 記錄了它被呼叫的過程。
+
+混淆這三者最大的問題：你可能以為在測試「邏輯」，其實只是在測試「假資料有沒有被正確傳回來」。Mock 驗的是「互動」；Stub 提供的是「狀態」；Spy 觀察的是「行為」。用錯工具，測試綠燈但 bug 還在。`,
+    analogy: {
+      icon: "🎭",
+      title: "模特兒 / 道具 / 監視器",
+      text: "Stub 像道具槍——拿起來像真的、會響，但不傷人，提供你需要的「結果」。Mock 像一個挑剔的導演，事先寫好劇本說「這場戲你必須在第 2 分鐘走左邊、說這句台詞」，拍完對劇本，不照做就 NG。Spy 像片場監視器——演員真的在演，你只是偷偷記錄他們做了什麼、說了什麼，事後回放。",
+    },
+    analogyHint: "道具 / 挑剔導演 / 監視器",
+    originStory:
+      "Mock 的正式定義來自 2000 年 Tim Mackinnon 等人發表的論文「Endo-Testing: Unit Testing with Mock Objects」。在此之前，「假物件」是個模糊概念；這篇論文把 test double 分類化，後來 Gerard Meszaros 的《xUnit Test Patterns》（2007）進一步系統化為 Dummy、Stub、Fake、Spy、Mock 五種。但業界對名詞用法一直很混亂——大多數框架（Sinon.js、Jest、Mockito）把這三種功能都叫做某種「mock」，讓分類變得更模糊。理解背後的意圖比記名詞更重要。",
+    example: {
+      code: `// Stub：給固定答案，測試自己的邏輯
+const db = { getUser: () => ({ id: 1, name: 'Alice' }) }; // 永遠回 Alice
+
+// Mock（Jest）：驗證是否被呼叫
+const sendEmail = jest.fn();
+sendEmail('hi');
+expect(sendEmail).toHaveBeenCalledWith('hi'); // 驗互動
+
+// Spy（Jest）：真實函式 + 觀察
+const spy = jest.spyOn(console, 'log');
+someFunction(); // 真的跑，console.log 也真的印
+expect(spy).toHaveBeenCalled(); // 只是記錄
+spy.mockRestore();`,
+      note: "Jest 的 jest.fn() 同時是 stub（可設回傳值）也是 mock（可驗呼叫）。jest.spyOn 是 spy，預設不攔截真實行為。",
+    },
+    tradeoffs: [
+      { label: "✅ Stub", text: "隔離外部依賴、讓測試可預測——測你的邏輯，不測第三方行為" },
+      { label: "✅ Mock", text: "驗證「互動是否發生」——email 有沒有被發送、API 有沒有被呼叫對的次數" },
+      { label: "⚠️ 過度 mock 的陷阱", text: "把所有東西都 mock 掉，測試就只在測 mock 本身，跟真實行為完全脫節——這叫 over-mocking，是常見反模式" },
+    ],
+    oneLiner:
+      "Stub 給假答案、Mock 驗互動、Spy 觀察真實行為——選錯工具，綠燈可能只代表你在測假的。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "你在測試一個「發送訂單確認信」的函式。你要驗的是「email service 有沒有被呼叫」，應該用哪個？",
+        options: [
+          { id: "a", text: "Stub，回傳一個假的 email 成功訊息", correct: false },
+          { id: "b", text: "Mock，設定預期「sendEmail 必須被呼叫一次，帶特定 subject」，結束時驗證", correct: true },
+          { id: "c", text: "Spy，讓真實 email service 跑，只是記錄呼叫", correct: false },
+        ],
+        explanation:
+          "你想驗的是「互動」——email 有沒有被呼叫、參數對不對。這是 Mock 的用途。Stub 只給假答案，不驗呼叫；Spy 讓真實 email service 跑（測試環境不能真的寄信）。Mock 讓你定義預期並在 assertion 階段確認。",
+        misconception: "Mock 是「有預期的假物件」，不是所有假物件都叫 mock。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你在測試一段業務邏輯，它呼叫資料庫查詢，你只關心「查到資料後業務邏輯處理對不對」，應該用哪個？",
+        options: [
+          { id: "a", text: "Mock，驗資料庫有沒有被呼叫", correct: false },
+          { id: "b", text: "Stub，給資料庫查詢一個固定的假回傳值，然後測業務邏輯的結果", correct: true },
+          { id: "c", text: "Spy，讓真實資料庫跑，觀察業務邏輯怎麼用資料", correct: false },
+        ],
+        explanation:
+          "你關心的是「給定資料後，邏輯跑對嗎」。Stub 給固定資料，讓你專心測邏輯，不管資料庫。Mock 會讓你浪費時間驗「資料庫被呼叫了幾次」——這不是這個測試的重點。真實資料庫在單元測試裡跑太慢也不可靠。",
+        misconception: "單元測試的核心是隔離，Stub 的價值就是提供可控的輸入讓你專心測邏輯。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「我把所有依賴都 mock 掉了，所以我的單元測試一定沒問題。」這樣對嗎？",
+        options: [
+          { id: "a", text: "對，mock 掉依賴才是正確的單元測試", correct: false },
+          { id: "b", text: "不完全，過度 mock 讓測試只測假物件的互動，跟真實行為脫節；整合測試也是必要的", correct: true },
+          { id: "c", text: "對，外部依賴不 mock 就會讓測試不穩定", correct: false },
+        ],
+        explanation:
+          "Over-mocking 是真實問題：你把所有東西都 mock 掉，測試通過只代表「你的假物件設定是對的」，不代表真實系統能跑。正確做法是：用 stub/mock 做快速的單元測試，同時有整合測試驗證真實元件之間的互動（真實 DB、真實 HTTP call）。兩層都要，不能只靠其中一種。",
+        misconception: "100% mock 的測試套件不能告訴你系統「整合後」是否正確——那是整合測試的職責。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "Mocks Aren't Stubs（Martin Fowler）",
+        url: "https://martinfowler.com/articles/mocksArentStubs.html",
+        why: "最清楚解釋這三者差別的文章，Fowler 的說明是業界最常被引用的來源",
+      },
+      {
+        title: "Jest 官方文件 — Mock Functions",
+        url: "https://jestjs.io/docs/mock-functions",
+        why: "直接看 API，jest.fn() / spyOn / mockReturnValue 怎麼用，一個小時就能上手",
+      },
+    ],
+  },
+  {
+    day: 23,
+    tag: "工程",
+    title: "Garbage Collection",
+    hook: "有 GC 的語言，為什麼程式還是會 memory leak？",
+    body: `Garbage Collection（GC）是語言 runtime 自動幫你回收「沒人在用的記憶體」。你不需要手動 malloc/free，聽起來很完美。但 GC 的判斷標準是「這塊記憶體還有沒有人 reference 它」——不是「這塊記憶體你還需要嗎」。這兩件事有時候不一樣。
+
+最常見的場景：你把一個 DOM element 的引用存進一個全域的 Map，後來 DOM 移掉了——但 Map 還 hold 著那個引用，GC 就沒辦法回收那個 element。你「不需要了」，但 GC 看到的是「還有人 reference 它」。Event listener 沒有 removeEventListener、定時器沒有 clearInterval、React component unmount 但 subscription 沒清除——都是同樣的模式：你忘了告訴 runtime「我不需要了」，GC 就繼續幫你保留。`,
+    analogy: {
+      icon: "🤖",
+      title: "自動掃地機器人掃不到沙發底下",
+      text: "GC 像自動掃地機器人——能打掃到的地方都打掃了，非常認真。但沙發底下塞滿了東西，機器人進不去。那些東西（記憶體）還是在那裡佔空間，你忘了它們——但機器人無法確定「你真的不需要它」，所以不敢動。Memory leak 就是一堆機器人永遠到不了的角落。",
+    },
+    analogyHint: "自動掃地機器人掃不到沙發底下",
+    originStory:
+      "GC 最早在 1959 年由 John McCarthy 為 Lisp 設計——mark-and-sweep 演算法沿用至今。Java 1995 年把 GC 帶入商業主流語言。Go（2009）的 GC 是低延遲設計，目標是把 stop-the-world pause 壓到 < 1ms。2015 年 V8（Node.js / Chrome 的 JS engine）從 full GC 轉向 incremental / concurrent GC，大幅降低了 JS app 的 GC 卡頓。但 GC 永遠解決不了「ref 還在但你不需要了」的問題——WeakMap 和 WeakRef（ES2021）就是為了處理這個邊界情況而生。",
+    example: {
+      code: `// ❌ Memory leak：Map 一直 hold 著 DOM 引用
+const cache = new Map();
+function addWidget(el) {
+  cache.set(el, { data: 'heavy object' });
+  document.body.append(el);
+}
+el.remove(); // DOM 移掉了，但 cache 還有 ref → GC 無法回收
+
+// ✅ WeakMap：key 是弱引用，DOM 被移掉後 GC 可以回收
+const cache = new WeakMap();
+function addWidget(el) {
+  cache.set(el, { data: 'heavy object' }); // GC 可以回收 el`,
+      note: "WeakMap 的 key 是弱引用（weak reference）——當 key 物件沒有其他強引用時，GC 可以回收它，WeakMap 的 entry 也自動消失。但 WeakMap 不可 iterate（就是因為這個），所以不是所有 Map 都能換成 WeakMap。",
+    },
+    tradeoffs: [
+      { label: "✅ GC 解決的", text: "忘記 free 記憶體的問題——大部分「用完就不需要了」的物件會被自動回收" },
+      { label: "⚠️ GC 解決不了的", text: "「ref 還在但你不需要了」的 logical leak——event listener、global cache、setInterval、closure hold 住大物件都是常見場景" },
+      { label: "❌ GC 的代價", text: "Stop-the-world pause（GC 跑時 app 短暫暫停）；記憶體用量通常比手動管理高——GC 語言不適合即時系統或超低記憶體嵌入式環境" },
+    ],
+    oneLiner:
+      "GC 回收「沒有 reference 的記憶體」，不回收「你忘了清掉 reference 的記憶體」——這中間的差距就是 memory leak。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "GC 決定回收一塊記憶體的判斷標準是什麼？",
+        options: [
+          { id: "a", text: "這塊記憶體上次被存取是多久以前", correct: false },
+          { id: "b", text: "這塊記憶體已經沒有任何 reference 指向它", correct: true },
+          { id: "c", text: "這塊記憶體是否超過某個大小閾值", correct: false },
+        ],
+        explanation:
+          "主流 GC（包含 JS 的 V8）的核心是 reachability——從 root（全域變數、執行中的函式）出發，能 reach 到的物件就不回收。一旦沒有任何路徑能 reach 到某個物件，它就是垃圾，可以被回收。時間和大小都不是判斷標準。",
+        misconception: "GC 不管「你上次用它多久了」，只管「還有沒有 reference 能到達它」。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "React 的 useEffect 裡，你訂閱了一個 WebSocket 的 message 事件。Component unmount 時如果不取消訂閱，會發生什麼？",
+        options: [
+          { id: "a", text: "沒問題，React 會自動清除 event listener", correct: false },
+          { id: "b", text: "Memory leak：WebSocket 的 listener 還 hold 著 component 的 closure，GC 無法回收 component", correct: true },
+          { id: "c", text: "App 會立刻 crash", correct: false },
+        ],
+        explanation:
+          "Event listener 是 WebSocket 物件的一部分，它 hold 著你的 callback closure，closure 又 hold 著 component 的 state 和 props。Component unmount 後理論上應該被 GC，但 WebSocket 還在、listener 還掛著，整條 reference chain 還活著——memory leak。解法是在 useEffect 的 cleanup 函式裡 removeEventListener / unsubscribe。",
+        misconception: "React 只幫你管 DOM，不幫你管 WebSocket、EventEmitter、setInterval 等外部訂閱。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「我們用 Go，有 GC，不可能有 memory leak。」這說法對嗎？",
+        options: [
+          { id: "a", text: "對，GC 語言不可能有 memory leak", correct: false },
+          { id: "b", text: "不對，Go 也會有 GC 回收不到的 logical leak，例如往 channel 或 global slice 無限 append", correct: true },
+          { id: "c", text: "對，Go 的 GC 特別強，其他語言才有問題", correct: false },
+        ],
+        explanation:
+          "任何有 GC 的語言都可能 memory leak。Go 常見的場景：goroutine 因為 channel 阻塞沒有結束（goroutine leak）、全域 map 無限長大、往 slice append 但從不 clear。GC 能回收「沒人 reference 的記憶體」，但如果你永遠 hold 著 reference（即使邏輯上不需要），GC 就無能為力。",
+        misconception: "GC 防的是「忘記 free」，不防「永遠不 free」——後者是程式設計師的邏輯錯誤，不是語言的責任。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "MDN — Memory management in JavaScript",
+        url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management",
+        why: "從 allocation 到 GC 演算法（mark-and-sweep）到常見 leak 模式，是 JS GC 最完整的入門",
+      },
+      {
+        title: "Chrome DevTools — Memory 面板教學",
+        url: "https://developer.chrome.com/docs/devtools/memory-problems/",
+        why: "直接在瀏覽器裡抓 memory leak 的 heap snapshot 和 allocation timeline，是最快驗證問題的方式",
+      },
+    ],
+  },
+  {
+    day: 24,
+    tag: "API 設計",
+    title: "Idempotency",
+    hook: "支付按了兩次，為什麼有時候扣兩次錢、有時候只扣一次？",
+    body: `Idempotency（冪等性）說的是：同一個請求執行一次和執行多次，結果一樣。GET 是冪等的——你 GET 一個資源一百次，它不會因此多建 100 個資源。DELETE 也是冪等的——刪已經刪掉的東西，還是「刪掉的狀態」。POST 不是——你 POST 一筆訂單三次，會建三筆。
+
+這為什麼重要？網路是不可靠的——你按下「付款」，request 在路上丟掉了、伺服器超時了、使用者以為沒成功就重按。這個重複的 request 有沒有被正確處理，決定了使用者是不是被扣了兩次錢。正確的做法是 idempotency key：客戶端帶一個 UUID，伺服器記錄「這個 UUID 的請求我已經處理過了，結果是 X」，重複來就直接回 X，不重新執行。Stripe 的 API 就是用這個模式——他們把這個保障暴露給所有開發者用。`,
+    analogy: {
+      icon: "🛗",
+      title: "電梯按鈕 vs 投幣機",
+      text: "電梯「關門」按鈕是冪等的——按一次是關門、按十次還是關門，按到爛它也不會多關幾次。投幣機不是冪等的——投一枚出一罐、投十枚出十罐。支付就像投幣機：POST 一次收一次錢，POST 兩次就可能收兩次——除非你額外設計冪等機制。",
+    },
+    analogyHint: "電梯按鈕 vs 投幣機",
+    originStory:
+      "Idempotency 的數學定義來自 19 世紀代數——一個操作套用多次跟套用一次結果相同。進入電腦科學是在 HTTP/1.1 規格（RFC 7231, 1999）把它明文寫進方法語義裡。但在 API 設計的主流討論要到 2010 年代支付系統大規模上線後——Stripe 大約在 2013 年公開他們的 idempotency key 設計，成為業界的標準範本。分散式系統的 at-least-once delivery 語義讓 idempotency 從「最好有」變成「必須有」——消息可能重複送達，你得確保重複處理不造成重複效果。",
+    example: {
+      code: `// 客戶端：每次支付請求帶一個唯一 key
+const idempotencyKey = crypto.randomUUID(); // 新一筆交易就產生新的
+await fetch('/payments', {
+  method: 'POST',
+  headers: { 'Idempotency-Key': idempotencyKey },
+  body: JSON.stringify({ amount: 1000 }),
+});
+
+// 伺服器：記錄已處理的 key
+const existing = await db.query(
+  'SELECT result FROM payments WHERE idempotency_key = $1', [key]
+);
+if (existing) return existing.result; // 重複請求，直接回舊結果
+// 否則執行付款 + 儲存 key + 結果`,
+      note: "Idempotency key 要由客戶端產生（不是伺服器），這樣網路重試時帶的是同一個 key。超時後重試 = 同一個 key，伺服器認出來直接回舊結果，不重複扣款。",
+    },
+    tradeoffs: [
+      { label: "✅ 必須有", text: "任何「寫入操作 + 可能重試」的場景：支付、訂單建立、email 發送——分散式系統的基本安全護欄" },
+      { label: "⚠️ 注意", text: "Idempotency key 要存在資料庫並有 TTL（過期時間）——永久存會無限增長，通常設 24-72 小時" },
+      { label: "❌ 不適用", text: "純查詢操作（GET 天然冪等）、每次都應該產生新結果的操作（如「每秒記一筆 log」）——這裡不需要 idempotency key" },
+    ],
+    oneLiner:
+      "Idempotency 讓同一個請求無論發幾次結果都一樣——解決的是「網路重試造成重複扣款」這個核心問題。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "以下哪個 HTTP method 在 HTTP 規格裡被定義為冪等（idempotent）？",
+        options: [
+          { id: "a", text: "POST", correct: false },
+          { id: "b", text: "DELETE", correct: true },
+          { id: "c", text: "PATCH", correct: false },
+        ],
+        explanation:
+          "HTTP/1.1 規格（RFC 7231）明文規定 GET、HEAD、PUT、DELETE 是 idempotent。POST 和 PATCH 不是（POST 每次建新資源、PATCH 部分更新可能不冪等）。DELETE 的冪等語義是「刪一個已刪掉的資源」仍應回 200 或 404，而不是報錯——這在 REST API 設計裡常被忽略。",
+        misconception: "Idempotent ≠ safe（不修改狀態）。DELETE 是 idempotent 但不是 safe，因為它確實修改了狀態（刪東西）。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你的 API 在處理付款時，因伺服器超時，客戶端不確定有沒有成功，又送了一次相同請求。最正確的處理方式？",
+        options: [
+          { id: "a", text: "讓兩次請求都執行，重複收費是使用者的責任", correct: false },
+          { id: "b", text: "用 idempotency key，伺服器識別重複請求並回傳第一次的結果", correct: true },
+          { id: "c", text: "讓前端在收到 timeout 後不重試，告訴使用者重新整理再試", correct: false },
+        ],
+        explanation:
+          "網路 timeout 不代表請求沒到達——可能是「到了但回應在路上丟掉」。讓使用者「重新整理再試」也只是把重複請求延後，問題還在。Idempotency key 讓伺服器能識別重複請求並安全地回同樣結果，才是根本解法。",
+        misconception: "「不讓前端重試」不是 idempotency——你只是把問題丟給使用者，他還是會再按一次。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "同事說：「我們的 PUT /orders/{id} 更新訂單，PUT 是冪等的，所以不需要 idempotency key。」這說法一定對嗎？",
+        options: [
+          { id: "a", text: "對，PUT 天然冪等，規格保證了", correct: false },
+          { id: "b", text: "不一定，取決於你的實作——如果 PUT 內部有「increment 數量」等非冪等操作，HTTP 語義和實際行為就不一致", correct: true },
+          { id: "c", text: "不對，PUT 從來不冪等", correct: false },
+        ],
+        explanation:
+          "HTTP 規格說 PUT 應該是冪等的，但這只是「語義契約」，不是技術強制。如果你的 PUT handler 裡面做了 UPDATE quantity = quantity + 1，重複執行就會 +1 +1 +1……——這破壞了 PUT 的冪等語義。冪等性最終靠的是你的實作邏輯，不是 HTTP method 的標籤。",
+        misconception: "HTTP method 的冪等語義是設計約定，不是語言層的強制保證——你的實作可以輕易打破它。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "Stripe 官方文件 — Idempotent requests",
+        url: "https://stripe.com/docs/api/idempotent_requests",
+        why: "業界最標準的 idempotency key 實作範本，直接看 Stripe 怎麼設計的比看理論快十倍",
+      },
+      {
+        title: "AWS 建築師部落格 — Making retries safe with idempotent APIs",
+        url: "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/",
+        why: "AWS 內部工程師寫的，從分散式系統角度說明為什麼 idempotency 是生產系統的必備能力",
+      },
+    ],
+  },
+  {
+    day: 25,
+    tag: "安全",
+    title: "Hashing vs Encryption",
+    hook: "密碼資料庫被偷，公司為什麼還能說「你的密碼是安全的」？",
+    body: `Hash 和 Encryption 都是把資料「變形」，但方向完全不同。Encryption 是可逆的——你有金鑰，就能把密文解回原文（否則 HTTPS 就沒辦法讓你看網頁了）。Hash 是不可逆的——給你 bcrypt 的 hash 輸出，數學上沒辦法推回原始密碼。所以密碼要 hash，不要 encrypt。如果你 encrypt 密碼，代表你有金鑰、能解出原始密碼——資料庫和金鑰一起被偷，等於明文洩漏。
+
+但「不可逆」不代表「安全」。簡單的 hash（MD5、SHA-256）很快，快到攻擊者可以用 rainbow table 或暴力枚舉——先建一張「常見密碼 → hash」的對照表，看到你的 hash 就查表反推。密碼 hash 要用慢 hash（bcrypt、Argon2），刻意讓每次計算很費時，就算拿到 hash 也很難暴力破解。再加上 salt（每個密碼用隨機字串混合再 hash），讓相同密碼 hash 出不同值，讓 rainbow table 直接失效。`,
+    analogy: {
+      icon: "🔐",
+      title: "絞肉機 vs 保險箱",
+      text: "Hash 像絞肉機——把肉絞進去，出來的是碎肉。你拿著碎肉，反推不回完整的肉。Encryption 像保險箱——東西鎖進去，你有鑰匙就能打開取出。密碼要用絞肉機，不要用保險箱——你不需要（也不應該）知道使用者的原始密碼，你只需要問「這個密碼絞出來的碎肉，跟我存的一樣嗎」。",
+    },
+    analogyHint: "絞肉機（不可逆）vs 保險箱（可還原）",
+    originStory:
+      "Hash function 的數學根源很古老（Shannon 的 information theory 1948），但密碼學 hash 的現代實作是 Ron Rivest 1992 年設計 MD5。MD5 在 2004 年被找到碰撞漏洞（兩個不同輸入有相同 hash），SHA-1 在 2017 年被 Google 用 SHAttered 攻擊擊破。現在密碼 hash 的推薦是 bcrypt（1999）、scrypt（2009）、Argon2（2015，密碼 hash 競賽冠軍）——它們設計上就是「故意很慢」，讓暴力破解的時間成本高到不可行。LinkedIn 2012 年洩漏了 600 萬個 SHA-1 hash 沒加 salt，幾天內大部分都被破解。這個事件讓業界正式停用快速 hash 做密碼儲存。",
+    example: {
+      code: `// ❌ 不要這樣存密碼（SHA-256 太快、無 salt）
+const hash = crypto.createHash('sha256').update(password).digest('hex');
+
+// ✅ 正確：bcrypt（自帶 salt、慢 hash）
+import bcrypt from 'bcrypt';
+const ROUNDS = 12; // 越高越慢（每+1 約 2x 時間），推薦 10-14
+
+// 存密碼
+const hashed = await bcrypt.hash(password, ROUNDS);
+
+// 驗證密碼（不能自己比 hash，因為每次 salt 不同）
+const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
+      note: "bcrypt.compare 不是比兩個字串是否相等，是重新 hash 並用常數時間比對——防 timing attack。千萬不要自己 hash 後比較字串。",
+    },
+    tradeoffs: [
+      { label: "✅ Hash 用於", text: "密碼儲存（bcrypt/Argon2）、資料完整性驗證（SHA-256）、git commit ID——任何「只需驗證、不需還原」的場景" },
+      { label: "✅ Encryption 用於", text: "HTTPS、加密檔案、加密 DB 欄位（信用卡號、身份證）——任何「需要解回原始資料」的場景" },
+      { label: "❌ 常見錯誤", text: "用 MD5/SHA1 存密碼（已破解）、用 Encryption 存密碼（金鑰被偷就洩漏）、不加 salt（rainbow table 直接查表）" },
+    ],
+    oneLiner:
+      "Hash 是絞肉機（不可逆）；Encryption 是保險箱（可還原）——密碼用絞肉機，且要用刻意很慢的那種。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "為什麼存密碼要用 bcrypt 而不是 SHA-256？",
+        options: [
+          { id: "a", text: "因為 SHA-256 是可逆的，bcrypt 不是", correct: false },
+          { id: "b", text: "因為 SHA-256 計算太快，攻擊者能暴力枚舉；bcrypt 刻意設計得很慢", correct: true },
+          { id: "c", text: "因為 bcrypt 的 hash 長度更長，更安全", correct: false },
+        ],
+        explanation:
+          "SHA-256 也是不可逆的 hash，問題不在可逆性，而在速度。現代 GPU 每秒能跑幾十億次 SHA-256，暴力枚舉常見密碼幾分鐘就搞定。bcrypt 的 cost factor 讓每次 hash 需要幾十到幾百毫秒，攻擊者要跑幾億次就需要幾年——這才是密碼 hash 的核心設計目標。",
+        misconception: "「不可逆」是密碼 hash 的必要條件，但不夠——還要「夠慢」才能抵抗暴力破解。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question:
+          "你要儲存使用者的信用卡號，方便他們結帳時帶入。你應該用 hash 還是 encryption？",
+        options: [
+          { id: "a", text: "Hash，因為 hash 更安全", correct: false },
+          { id: "b", text: "Encryption，因為你結帳時需要拿回原始號碼", correct: true },
+          { id: "c", text: "兩個都用，hash 存一份、encryption 存一份", correct: false },
+        ],
+        explanation:
+          "信用卡號需要被讀出來（打 API 給支付處理商），所以必須能還原——這是 encryption 的場景。Hash 是不可逆的，hash 之後永遠拿不回原始號碼。實務上信用卡儲存有 PCI DSS 規範，通常是 tokenization（把號碼換成 token 存在自己系統，真實號碼存在 PCI 合規的第三方）。",
+        misconception: "「更安全」不代表「更合適」——需要還原的資料不能用 hash。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question:
+          "公司說：「我們的密碼是用 MD5 加密的，非常安全。」這句話有幾個問題？",
+        options: [
+          { id: "a", text: "沒問題，MD5 是業界標準", correct: false },
+          { id: "b", text: "兩個問題：MD5 是 hash 不是加密；且 MD5 已被破解不應用於密碼", correct: true },
+          { id: "c", text: "只有一個問題：應該說「hash」不是「加密」，但 MD5 本身還是安全的", correct: false },
+        ],
+        explanation:
+          "「MD5 加密」有兩個錯誤：(1) MD5 是 hash function，不是 encryption，這兩個詞不一樣——雖然聽起來像吹毛求疵，但概念錯誤代表設計者可能不了解這兩者的差異；(2) MD5 在 2004 年就被找到碰撞，rainbow table 覆蓋率極高，大量常見密碼的 MD5 幾秒內就能查表反推。2012 年 LinkedIn 的 hash 洩漏大部分是 SHA-1 而非 MD5，但同樣快速被破解。",
+        misconception: "名詞正確性不是雞蛋裡挑骨頭——「加密」和「hash」的混用常常反映設計者對兩者的用途和安全性有根本性的誤解。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "Have I Been Pwned — Passwords",
+        url: "https://haveibeenpwned.com/Passwords",
+        why: "直接查你的密碼有沒有出現在已知洩漏資料庫，體驗「弱密碼有多脆弱」比看文章有感",
+      },
+      {
+        title: "OWASP — Password Storage Cheat Sheet",
+        url: "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html",
+        why: "安全界標準的密碼儲存指南，直接給推薦演算法（Argon2id / bcrypt）和參數設定",
+      },
+    ],
+  },
 ];
 
 export function getConceptByDay(day) {
