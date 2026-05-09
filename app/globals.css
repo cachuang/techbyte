@@ -179,6 +179,31 @@ a:focus:not(:focus-visible) {
   .tb-explain {
     padding: 16px !important;
   }
+  .tb-code {
+    padding: 12px 14px !important;
+    margin: 18px 0 !important;
+  }
+  .tb-code pre {
+    font-size: 12px !important;
+  }
+  .tb-origin {
+    padding: 12px 14px !important;
+    margin: 18px 0 !important;
+  }
+  .tb-origin > div:last-child {
+    font-size: 13.5px !important;
+    line-height: 1.7 !important;
+  }
+  .tb-oneliner {
+    padding: 14px 16px !important;
+    margin: 20px 0 !important;
+  }
+  .tb-oneliner > div:last-child {
+    font-size: 15px !important;
+  }
+  .tb-reading {
+    padding: 14px 16px !important;
+  }
   .tb-result-icon {
     font-size: 56px !important;
   }

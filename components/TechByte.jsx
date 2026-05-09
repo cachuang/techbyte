@@ -184,6 +184,16 @@ export default function TechByte({ concept }) {
             </p>
           ))}
 
+          {concept.example?.code && (
+            <div style={styles.codeCard} className="tb-code">
+              <div style={styles.codeLabel}>📝 例子</div>
+              <pre style={styles.codePre}>{concept.example.code}</pre>
+              {concept.example.note && (
+                <div style={styles.codeNote}>{concept.example.note}</div>
+              )}
+            </div>
+          )}
+
           <div style={styles.analogyCard} className="tb-analogy">
             <div style={styles.analogyIcon}>{concept.analogy.icon}</div>
             <div style={{ minWidth: 0 }}>
@@ -191,6 +201,13 @@ export default function TechByte({ concept }) {
               <div style={styles.analogyText}>{concept.analogy.text}</div>
             </div>
           </div>
+
+          {concept.originStory && (
+            <div style={styles.originCard} className="tb-origin">
+              <div style={styles.originLabel}>📜 ORIGIN</div>
+              <div style={styles.originText}>{concept.originStory}</div>
+            </div>
+          )}
 
           <div style={styles.tradeoffGrid}>
             {concept.tradeoffs.map((t, i) => (
@@ -200,6 +217,13 @@ export default function TechByte({ concept }) {
               </div>
             ))}
           </div>
+
+          {concept.oneLiner && (
+            <div style={styles.oneLinerCard} className="tb-oneliner">
+              <div style={styles.oneLinerLabel}>💬 一句話講</div>
+              <div style={styles.oneLinerText}>「{concept.oneLiner}」</div>
+            </div>
+          )}
 
           <div style={styles.ctaArea} className="tb-cta-sticky">
             <div style={styles.progressBar}>
@@ -377,6 +401,27 @@ export default function TechByte({ concept }) {
               );
             })}
           </div>
+
+          {concept.furtherReading?.length > 0 && (
+            <div style={styles.readingCard} className="tb-reading">
+              <div style={styles.readingLabel}>📚 想再深入</div>
+              <ul style={styles.readingList}>
+                {concept.furtherReading.map((r, i) => (
+                  <li key={i} style={styles.readingItem}>
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.readingLink}
+                    >
+                      {r.title} ↗
+                    </a>
+                    <div style={styles.readingWhy}>{r.why}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {nextConcept && (
             <div style={styles.resultNextBox} className="tb-next-box">
@@ -687,6 +732,124 @@ const styles = {
     marginBottom: 6,
   },
   resultNextSub: { fontSize: 13, color: "#666", lineHeight: 1.5 },
+
+  // === 新增區塊：Code / Origin / OneLiner / Further reading ===
+  codeCard: {
+    background: "#0a0a0d",
+    border: "1px solid #1c1c20",
+    borderRadius: 8,
+    padding: "14px 16px",
+    margin: "20px 0",
+    overflowX: "auto",
+  },
+  codeLabel: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10,
+    color: "#7a766c",
+    letterSpacing: 1.5,
+    fontWeight: 700,
+    marginBottom: 10,
+  },
+  codePre: {
+    margin: 0,
+    fontFamily: "'SF Mono', 'Menlo', 'Consolas', 'Courier New', monospace",
+    fontSize: 13,
+    lineHeight: 1.7,
+    color: "#dcd8cc",
+    whiteSpace: "pre",
+  },
+  codeNote: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTop: "1px solid #1c1c20",
+    fontSize: 13,
+    color: "#888",
+    lineHeight: 1.7,
+    fontStyle: "italic",
+    fontFamily: "'Georgia', 'Noto Serif TC', serif",
+  },
+  originCard: {
+    background: "#13110a",
+    border: "1px solid #2a261a",
+    borderLeft: "3px solid #fbbf24",
+    borderRadius: 8,
+    padding: "14px 18px",
+    margin: "20px 0",
+  },
+  originLabel: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10,
+    color: "#fbbf24",
+    letterSpacing: 1.5,
+    fontWeight: 700,
+    marginBottom: 8,
+  },
+  originText: {
+    fontSize: 14,
+    color: "#bdb8a8",
+    lineHeight: 1.75,
+  },
+  oneLinerCard: {
+    background:
+      "linear-gradient(135deg, rgba(250, 204, 21, 0.08) 0%, rgba(250, 204, 21, 0.02) 100%)",
+    border: "1px solid #2a261a",
+    borderRadius: 8,
+    padding: "16px 20px",
+    margin: "24px 0",
+  },
+  oneLinerLabel: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#facc15",
+    letterSpacing: 1.5,
+    fontWeight: 700,
+    marginBottom: 8,
+  },
+  oneLinerText: {
+    fontSize: 16,
+    color: "#f0e6c4",
+    lineHeight: 1.6,
+    fontStyle: "italic",
+    fontWeight: 500,
+  },
+  readingCard: {
+    background: "#111",
+    border: "1px solid #222",
+    borderRadius: 10,
+    padding: "16px 20px",
+    marginTop: 28,
+    marginBottom: 16,
+  },
+  readingLabel: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#facc15",
+    letterSpacing: 1.5,
+    fontWeight: 700,
+    marginBottom: 14,
+  },
+  readingList: {
+    listStyle: "none",
+    padding: 0,
+    margin: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
+  readingItem: {},
+  readingLink: {
+    color: "#fbbf24",
+    fontSize: 14,
+    textDecoration: "none",
+    fontWeight: 600,
+    display: "inline-block",
+    marginBottom: 4,
+  },
+  readingWhy: {
+    fontSize: 12,
+    color: "#888",
+    lineHeight: 1.6,
+  },
   loadingNote: {
     textAlign: "center",
     fontSize: 13,
