@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getNextConcept } from "@/data/concepts";
+import { getNextConceptByReleaseDay } from "@/data/concepts";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { getDayStatus } from "@/lib/day-progress";
@@ -22,13 +22,13 @@ export default function TechByte({ concept }) {
   const [gateState, setGateState] = useState({ checked: false, locked: false, daysUntil: 0 });
 
   useEffect(() => {
-    const status = getDayStatus(concept.day);
+    const status = getDayStatus(concept.releaseDay);
     setGateState({
       checked: true,
       locked: !status.unlocked,
       daysUntil: status.daysUntil,
     });
-  }, [concept.day]);
+  }, [concept.releaseDay]);
 
   useEffect(() => {
     if (stage !== STAGES.READ) return;
@@ -40,7 +40,7 @@ export default function TechByte({ concept }) {
 
   const q = concept.questions[currentQ];
   const score = answers.filter((a) => a.correct).length;
-  const nextConcept = getNextConcept(concept.day);
+  const nextConcept = getNextConceptByReleaseDay(concept.releaseDay);
 
   const handleConfirm = () => {
     if (!selected) return;
@@ -59,7 +59,7 @@ export default function TechByte({ concept }) {
     const unsureCount = finalAnswers.filter((a) => a.unsure).length;
     const { error } = await supabase.from("attempts").insert({
       user_id: user.id,
-      day: concept.day,
+      concept_slug: concept.slug,
       score: correctCount,
       unsure_count: unsureCount,
       answers: finalAnswers,
@@ -122,7 +122,7 @@ export default function TechByte({ concept }) {
       <div style={styles.root}>
         <style>{css}</style>
         <div style={styles.dayMeta} className="tb-day-meta">
-          <span style={styles.dayBadge}>Day {concept.day}</span>
+          <span style={styles.dayBadge}>Day {concept.releaseDay}</span>
           <span style={styles.metaRight}>🔒 尚未解鎖</span>
         </div>
         <div style={styles.page} className="fade-in tb-page">
@@ -154,7 +154,7 @@ export default function TechByte({ concept }) {
       <style>{css}</style>
 
       <div style={styles.dayMeta} className="tb-day-meta">
-        <span style={styles.dayBadge}>Day {concept.day}</span>
+        <span style={styles.dayBadge}>Day {concept.releaseDay}</span>
         <span style={styles.metaRight}>
           {stage === STAGES.READ && "⏱ 約 4 分鐘"}
           {stage === STAGES.QUIZ &&
