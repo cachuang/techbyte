@@ -1,14 +1,16 @@
 #!/usr/bin/env node
-// Generate a Day-N concept draft via Claude Opus 4.7.
+// Generate a concept draft via Claude Opus 4.7.
 //
 // Usage:
-//   ANTHROPIC_API_KEY=sk-... npm run gen:concept -- --day 3
-//   ANTHROPIC_API_KEY=sk-... npm run gen:concept -- --day 3 --title "CDN" --hook "..." --analogy-hint "..." --tag "效能"
-//   ANTHROPIC_API_KEY=sk-... npm run gen:concept -- --day 3 --stdout
+//   ANTHROPIC_API_KEY=sk-... npm run gen:concept -- --slug cdn
+//   ANTHROPIC_API_KEY=sk-... npm run gen:concept -- --release-day 3
+//   ANTHROPIC_API_KEY=sk-... npm run gen:concept -- --slug new-thing --release-day 26 \
+//       --title "..." --hook "..." --analogy-hint "..." --tag "..."
+//   ANTHROPIC_API_KEY=sk-... npm run gen:concept -- --slug cdn --stdout
 //
-// Reads metadata stub from data/concepts.js by default; --title / --hook /
-// --analogy-hint / --tag override. Writes data/drafts/day-N.json (or stdout
-// with --stdout). Always pretty-prints to stderr a summary for review.
+// Looks up stub from data/concepts.js by --slug (preferred, stable identity)
+// or --release-day (for unmigrated stubs). CLI flags override stub fields.
+// Writes data/drafts/<slug>.json (and <slug>.review.md) or stdout.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
@@ -24,7 +26,8 @@ const ROOT = resolve(__dirname, "..");
 
 const { values } = parseArgs({
   options: {
-    day: { type: "string" },
+    slug: { type: "string" },
+    "release-day": { type: "string" },
     title: { type: "string" },
     hook: { type: "string" },
     "analogy-hint": { type: "string" },
@@ -35,26 +38,36 @@ const { values } = parseArgs({
   },
 });
 
-if (!values.day) {
-  console.error("missing --day");
+if (!values.slug && !values["release-day"]) {
+  console.error("missing --slug or --release-day");
   process.exit(1);
 }
-const day = Number(values.day);
-const stub = concepts.find((c) => c.day === day) ?? {};
+
+const stub =
+  (values.slug && concepts.find((c) => c.slug === values.slug)) ||
+  (values["release-day"] &&
+    concepts.find((c) => c.releaseDay === Number(values["release-day"]))) ||
+  {};
+
+const slug = values.slug ?? stub.slug;
+const releaseDay = values["release-day"]
+  ? Number(values["release-day"])
+  : stub.releaseDay;
 const title = values.title ?? stub.title;
 const hook = values.hook ?? stub.hook;
 const analogyHint = values["analogy-hint"] ?? stub.analogyHint;
 const tag = values.tag ?? stub.tag;
 
-if (!title || !hook || !analogyHint) {
+if (!slug || !releaseDay || !title || !hook || !analogyHint) {
   console.error(
-    `Day ${day} has incomplete metadata. Provide --title --hook --analogy-hint (and --tag).`,
+    `Concept stub incomplete. Need --slug, --release-day, --title, --hook, --analogy-hint (and --tag).`,
   );
   process.exit(1);
 }
 
 const ConceptSchema = z.object({
-  day: z.number().int(),
+  slug: z.string().describe("URL-safe 識別字，照使用者給的，不要改"),
+  releaseDay: z.number().int(),
   tag: z.string(),
   title: z.string(),
   hook: z.string(),
@@ -101,8 +114,8 @@ const ConceptSchema = z.object({
     .describe("恰好三題：第一題概念辨識、第二題情境判斷、第三題錯誤假設"),
 });
 
-const day1 = concepts.find((c) => c.day === 1);
-const day2 = concepts.find((c) => c.day === 2);
+const day1 = concepts.find((c) => c.slug === "jwt-vs-session");
+const day2 = concepts.find((c) => c.slug === "rest-vs-graphql");
 
 const VOICE = `# 你是 techbyte 的內容作者
 
@@ -131,18 +144,19 @@ ${JSON.stringify(day1, null, 2)}
 ## 範例 2：Day 2
 ${JSON.stringify(day2, null, 2)}`;
 
-const userPrompt = `請寫 Day ${day} 的概念內容。
+const userPrompt = `請寫概念「${title}」的內容。
 
-主題：${title}
+slug：${slug}
+releaseDay：${releaseDay}
 標籤：${tag ?? "未指定"}
 類比提示：${analogyHint}
 核心問題：${hook}
 
-請依 schema 輸出 JSON，沿用上述兩個範例的語氣與結構。day 欄位寫 ${day}。`;
+請依 schema 輸出 JSON，沿用上述兩個範例的語氣與結構。slug 欄位寫 "${slug}"，releaseDay 欄位寫 ${releaseDay}。`;
 
 const client = new Anthropic();
 
-console.error(`▸ Generating Day ${day}: ${title}`);
+console.error(`▸ Generating ${slug} (Day ${releaseDay}): ${title}`);
 console.error(`  model: ${values.model}, effort: high\n`);
 
 const response = await client.messages.parse({
@@ -195,7 +209,7 @@ console.error(
 if (values.stdout) {
   process.stdout.write(JSON.stringify(concept, null, 2) + "\n");
 } else {
-  const outPath = resolve(ROOT, `data/drafts/day-${day}.json`);
+  const outPath = resolve(ROOT, `data/drafts/${slug}.json`);
   await mkdir(dirname(outPath), { recursive: true });
   await writeFile(outPath, JSON.stringify(concept, null, 2) + "\n");
   console.error(`▸ Wrote ${outPath}`);
@@ -227,7 +241,7 @@ if (!values["no-review"] && !values.stdout) {
       .describe("找到的問題清單。沒問題就回空陣列，不要硬找碴。"),
   });
 
-  const reviewUserPrompt = `下面是剛產出的 Day ${day} 草稿，請 review。
+  const reviewUserPrompt = `下面是剛產出的 ${slug} (Day ${releaseDay}) 草稿，請 review。
 
 \`\`\`json
 ${JSON.stringify(concept, null, 2)}
@@ -281,7 +295,7 @@ verdict 嚴格判：有 blocker → rewrite 或 needs-edit；只有 nit → pass
     }
 
     const md = [
-      `# Day ${day} review`,
+      `# ${slug} (Day ${releaseDay}) review`,
       ``,
       `**Verdict**: ${review.verdict}`,
       ``,
@@ -300,7 +314,7 @@ verdict 嚴格判：有 blocker → rewrite 或 needs-edit；只有 nit → pass
             ``,
           ])),
     ].join("\n");
-    const reviewPath = resolve(ROOT, `data/drafts/day-${day}.review.md`);
+    const reviewPath = resolve(ROOT, `data/drafts/${slug}.review.md`);
     await writeFile(reviewPath, md);
     console.error(`▸ Wrote ${reviewPath}`);
 

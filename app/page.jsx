@@ -22,9 +22,9 @@ export default function Home() {
         {concepts.map((c) => {
           const isReady = !!c.questions;
           const beforeFirstVisit = currentDay == null;
-          const isToday = !beforeFirstVisit && c.day === currentDay;
-          const isFuture = !beforeFirstVisit && c.day > currentDay;
-          const daysUntil = isFuture ? c.day - currentDay : 0;
+          const isToday = !beforeFirstVisit && c.releaseDay === currentDay;
+          const isFuture = !beforeFirstVisit && c.releaseDay > currentDay;
+          const daysUntil = isFuture ? c.releaseDay - currentDay : 0;
           const isUnlocked = isReady && !isFuture;
 
           let statusEl;
@@ -57,7 +57,7 @@ export default function Home() {
                   style={isToday ? styles.dayNumToday : styles.dayNum}
                   className="tb-day-num"
                 >
-                  {String(c.day).padStart(2, "0")}
+                  {String(c.releaseDay).padStart(2, "0")}
                 </span>
               </div>
               <div style={styles.contentWrap}>
@@ -76,9 +76,9 @@ export default function Home() {
           );
 
           return (
-            <li key={c.day} style={styles.item}>
+            <li key={c.slug} style={styles.item}>
               {isUnlocked ? (
-                <Link href={`/day/${c.day}`} style={styles.link}>
+                <Link href={`/concept/${c.slug}`} style={styles.link}>
                   {inner}
                 </Link>
               ) : (

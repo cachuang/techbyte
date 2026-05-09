@@ -16,7 +16,7 @@ export default function MapPage() {
     (async () => {
       const { data, error } = await supabase
         .from("attempts")
-        .select("day, score")
+        .select("concept_slug, score")
         .eq("user_id", user.id);
       if (cancelled) return;
       if (error) setError(error.message);

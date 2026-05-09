@@ -32,11 +32,11 @@ function classify(score) {
 }
 
 export default function KnowledgeMap({ attempts }) {
-  const bestScoreByDay = useMemo(() => {
+  const bestScoreBySlug = useMemo(() => {
     const map = {};
     for (const a of attempts ?? []) {
-      const prev = map[a.day];
-      if (prev == null || a.score > prev) map[a.day] = a.score;
+      const prev = map[a.concept_slug];
+      if (prev == null || a.score > prev) map[a.concept_slug] = a.score;
     }
     return map;
   }, [attempts]);
@@ -50,7 +50,7 @@ export default function KnowledgeMap({ attempts }) {
     let mastered = 0;
     let attempted = 0;
     for (const c of ready) {
-      const status = classify(bestScoreByDay[c.day]);
+      const status = classify(bestScoreBySlug[c.slug]);
       if (status === "mastered") mastered++;
       else if (status === "attempted") attempted++;
     }
@@ -60,7 +60,7 @@ export default function KnowledgeMap({ attempts }) {
       attempted,
       untouched: ready.length - mastered - attempted,
     };
-  }, [bestScoreByDay, ready]);
+  }, [bestScoreBySlug, ready]);
 
   const grouped = useMemo(() => {
     const byTag = new Map();
@@ -70,12 +70,12 @@ export default function KnowledgeMap({ attempts }) {
     }
     return Array.from(byTag, ([tag, list]) => ({
       tag,
-      list: list.slice().sort((a, b) => a.day - b.day),
+      list: list.slice().sort((a, b) => a.releaseDay - b.releaseDay),
       mastered: list.filter(
-        (c) => classify(bestScoreByDay[c.day]) === "mastered",
+        (c) => classify(bestScoreBySlug[c.slug]) === "mastered",
       ).length,
     }));
-  }, [bestScoreByDay, ready]);
+  }, [bestScoreBySlug, ready]);
 
   const masteredPct =
     stats.total === 0 ? 0 : Math.round((stats.mastered / stats.total) * 100);
@@ -114,12 +114,12 @@ export default function KnowledgeMap({ attempts }) {
             </header>
             <ul style={styles.list}>
               {list.map((c) => {
-                const score = bestScoreByDay[c.day];
+                const score = bestScoreBySlug[c.slug];
                 const status = classify(score);
                 const s = STATUS[status];
                 return (
-                  <li key={c.day} style={styles.itemWrap}>
-                    <Link href={`/day/${c.day}`} style={styles.item}>
+                  <li key={c.slug} style={styles.itemWrap}>
+                    <Link href={`/concept/${c.slug}`} style={styles.item}>
                       <span
                         style={{
                           ...styles.dot,
@@ -131,7 +131,7 @@ export default function KnowledgeMap({ attempts }) {
                         }}
                       />
                       <span style={styles.day}>
-                        {String(c.day).padStart(2, "0")}
+                        {String(c.releaseDay).padStart(2, "0")}
                       </span>
                       <span style={styles.title}>{c.title}</span>
                       <span
