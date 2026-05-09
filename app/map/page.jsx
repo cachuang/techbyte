@@ -61,7 +61,7 @@ export default function MapPage() {
         🗺 知識地圖
       </h1>
       <p style={styles.subtitle} className="tb-map-subtitle">
-        金色＝已掌握（≥2/3）　橙色＝嘗試過　灰色＝未做。點概念前往閱讀。
+        依領域分組的學習進度。點任一個概念前往閱讀或重做。
       </p>
       <KnowledgeMap attempts={attempts} />
     </div>
@@ -70,21 +70,23 @@ export default function MapPage() {
 
 const styles = {
   wrap: {
-    maxWidth: 1000,
+    maxWidth: 680,
     margin: "0 auto",
-    padding: "24px 28px 40px",
+    padding: "24px 28px 60px",
   },
   title: {
     fontSize: 28,
     fontWeight: 700,
     color: "#f0f0e8",
     fontFamily: "'Georgia', 'Noto Serif TC', serif",
-    marginBottom: 8,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
-    color: "#888",
-    marginBottom: 20,
+    color: "#7a766c",
+    marginBottom: 22,
+    lineHeight: 1.6,
   },
   gate: {
     maxWidth: 680,
