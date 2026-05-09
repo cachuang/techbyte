@@ -3,132 +3,244 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+// 把 username 包成 fake email 給 Supabase Auth 用。使用者本身看不到也輸入不到。
+const usernameToEmail = (u) =>
+  `${u.trim().toLowerCase()}@user.techbyte.app`;
+
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,24}$/;
+
 export default function AuthForm({ onClose }) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
+  const [mode, setMode] = useState("signin"); // "signin" | "signup"
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | submitting | error
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) return;
-    setStatus("sending");
+    if (!username.trim() || !password) return;
+
+    if (!USERNAME_PATTERN.test(username.trim())) {
+      setStatus("error");
+      setErrorMsg("帳號需 3–24 字，只能用英文 / 數字 / 底線");
+      return;
+    }
+    if (password.length < 6) {
+      setStatus("error");
+      setErrorMsg("密碼至少 6 字元");
+      return;
+    }
+
+    setStatus("submitting");
     setErrorMsg("");
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-      },
-    });
+    const email = usernameToEmail(username);
+
+    const { error } =
+      mode === "signup"
+        ? await supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { username: username.trim() } },
+          })
+        : await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setStatus("error");
-      setErrorMsg(error.message);
-    } else {
-      setStatus("sent");
+      setErrorMsg(translateError(error.message, mode));
+      return;
     }
-  };
 
-  if (status === "sent") {
-    return (
-      <div style={styles.box}>
-        <p style={styles.successText}>
-          ✉️ 登入連結已寄到 <strong>{email}</strong>，請點信中連結登入。
-        </p>
-        {onClose && (
-          <button onClick={onClose} style={styles.closeBtn}>
-            關閉
-          </button>
-        )}
-      </div>
-    );
-  }
+    // 成功：useAuth 監聽到 user 變動會自動更新 Header。關掉 form。
+    setStatus("idle");
+    setUsername("");
+    setPassword("");
+    onClose?.();
+  };
 
   return (
     <form onSubmit={handleSubmit} style={styles.box}>
-      <label style={styles.label} htmlFor="auth-email">
-        用 email 登入（會收到一個一次性連結）
-      </label>
-      <div style={styles.row} className="tb-auth-row">
-        <input
-          id="auth-email"
-          type="email"
-          required
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-          className="tb-auth-input"
-          disabled={status === "sending"}
-          autoComplete="email"
-          inputMode="email"
-        />
+      <div style={styles.tabs}>
         <button
-          type="submit"
-          style={{ ...styles.btn, opacity: status === "sending" ? 0.5 : 1 }}
-          className="tb-auth-submit"
-          disabled={status === "sending"}
+          type="button"
+          onClick={() => {
+            setMode("signin");
+            setErrorMsg("");
+            setStatus("idle");
+          }}
+          style={mode === "signin" ? styles.tabActive : styles.tab}
         >
-          {status === "sending" ? "寄送中..." : "寄送登入連結"}
+          登入
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("signup");
+            setErrorMsg("");
+            setStatus("idle");
+          }}
+          style={mode === "signup" ? styles.tabActive : styles.tab}
+        >
+          註冊
         </button>
       </div>
-      {status === "error" && <p style={styles.errorText}>登入失敗：{errorMsg}</p>}
+
+      <label style={styles.label} htmlFor="auth-username">
+        帳號（英文 / 數字 / 底線，3–24 字）
+      </label>
+      <input
+        id="auth-username"
+        type="text"
+        required
+        placeholder="alice"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        style={styles.input}
+        className="tb-auth-input"
+        autoComplete="username"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        disabled={status === "submitting"}
+      />
+
+      <label style={{ ...styles.label, marginTop: 12 }} htmlFor="auth-password">
+        密碼（至少 6 字元）
+      </label>
+      <input
+        id="auth-password"
+        type="password"
+        required
+        placeholder="••••••"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        style={styles.input}
+        className="tb-auth-input"
+        autoComplete={mode === "signup" ? "new-password" : "current-password"}
+        disabled={status === "submitting"}
+      />
+
+      <button
+        type="submit"
+        style={{ ...styles.btn, opacity: status === "submitting" ? 0.5 : 1 }}
+        className="tb-auth-submit"
+        disabled={status === "submitting"}
+      >
+        {status === "submitting"
+          ? "處理中..."
+          : mode === "signup"
+          ? "建立帳號"
+          : "登入"}
+      </button>
+
+      {status === "error" && <p style={styles.errorText}>{errorMsg}</p>}
+
+      <p style={styles.hint}>
+        {mode === "signup"
+          ? "註冊不需 email、不會寄信。記得密碼，目前沒有忘記密碼流程。"
+          : "首次來請先點上面「註冊」建立帳號。"}
+      </p>
     </form>
   );
 }
 
+function translateError(msg, mode) {
+  const lower = (msg || "").toLowerCase();
+  if (lower.includes("invalid login")) return "帳號或密碼錯誤";
+  if (lower.includes("already registered") || lower.includes("already exists"))
+    return "此帳號已存在，請改用「登入」";
+  if (lower.includes("at least") && lower.includes("6")) return "密碼至少 6 字元";
+  if (lower.includes("not confirmed"))
+    return "Supabase 後台未關閉「Confirm email」，請先到 Auth 設定關掉";
+  return mode === "signup" ? `註冊失敗：${msg}` : `登入失敗：${msg}`;
+}
+
 const styles = {
   box: {
-    background: "#111",
+    background: "#141418",
     border: "1px solid #2a2a2a",
     borderRadius: 8,
-    padding: "16px 20px",
+    padding: "18px 20px",
     marginBottom: 16,
+  },
+  tabs: {
+    display: "flex",
+    gap: 8,
+    marginBottom: 18,
+    borderBottom: "1px solid #2a2a2a",
+  },
+  tab: {
+    flex: 1,
+    padding: "10px 0",
+    background: "transparent",
+    color: "#888",
+    border: "none",
+    borderBottom: "2px solid transparent",
+    fontFamily: "'Courier New', monospace",
+    fontSize: 13,
+    letterSpacing: 1,
+    cursor: "pointer",
+    fontWeight: 700,
+    transition: "color 0.15s",
+  },
+  tabActive: {
+    flex: 1,
+    padding: "10px 0",
+    background: "transparent",
+    color: "#facc15",
+    border: "none",
+    borderBottom: "2px solid #facc15",
+    fontFamily: "'Courier New', monospace",
+    fontSize: 13,
+    letterSpacing: 1,
+    cursor: "pointer",
+    fontWeight: 700,
+    marginBottom: -1,
   },
   label: {
     display: "block",
     fontSize: 12,
     color: "#888",
-    marginBottom: 10,
+    marginBottom: 6,
     fontFamily: "'Courier New', monospace",
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
-  row: { display: "flex", gap: 8 },
   input: {
-    flex: 1,
-    padding: "10px 12px",
+    width: "100%",
+    padding: "12px 14px",
     background: "#0a0a0a",
     border: "1px solid #2a2a2a",
     borderRadius: 6,
     color: "#f0f0e8",
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: "inherit",
     outline: "none",
   },
   btn: {
-    padding: "10px 16px",
+    marginTop: 18,
+    width: "100%",
+    padding: "12px 16px",
     background: "#facc15",
     color: "#0a0a0a",
     border: "none",
     borderRadius: 6,
     fontFamily: "'Courier New', monospace",
-    fontSize: 12,
+    fontSize: 13,
     letterSpacing: 1,
     fontWeight: 700,
     cursor: "pointer",
-    whiteSpace: "nowrap",
   },
-  successText: { fontSize: 14, color: "#4ade80", lineHeight: 1.6 },
-  errorText: { fontSize: 13, color: "#f87171", marginTop: 10 },
-  closeBtn: {
+  errorText: {
+    fontSize: 13,
+    color: "#f87171",
     marginTop: 12,
-    padding: "6px 12px",
-    background: "transparent",
-    color: "#888",
-    border: "1px solid #2a2a2a",
-    borderRadius: 6,
-    fontSize: 12,
-    fontFamily: "monospace",
-    cursor: "pointer",
+    lineHeight: 1.5,
+  },
+  hint: {
+    fontSize: 11,
+    color: "#666",
+    marginTop: 14,
+    lineHeight: 1.6,
+    fontFamily: "'Courier New', monospace",
   },
 };

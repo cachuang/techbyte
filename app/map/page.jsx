@@ -41,7 +41,7 @@ export default function MapPage() {
           登入後即可看到 8 個主題、15 個概念的視覺化進度。
         </p>
         <p style={styles.gateText} className="tb-gate-text">
-          右上角點「登入」用 email 收登入連結。
+          右上角點「登入」→ 切到「註冊」建一個帳號（username + 密碼，不寄信）。
         </p>
       </div>
     );
