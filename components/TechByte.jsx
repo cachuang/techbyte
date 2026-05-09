@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getNextConcept } from "@/data/concepts";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+import { getDayStatus } from "@/lib/day-progress";
 
 const STAGES = { READ: "read", QUIZ: "quiz", RESULT: "result" };
 const UNSURE_ID = "unsure";
@@ -17,6 +19,16 @@ export default function TechByte({ concept }) {
   const [answers, setAnswers] = useState([]);
   const [readProgress, setReadProgress] = useState(0);
   const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+  const [gateState, setGateState] = useState({ checked: false, locked: false, daysUntil: 0 });
+
+  useEffect(() => {
+    const status = getDayStatus(concept.day);
+    setGateState({
+      checked: true,
+      locked: !status.unlocked,
+      daysUntil: status.daysUntil,
+    });
+  }, [concept.day]);
 
   useEffect(() => {
     if (stage !== STAGES.READ) return;
@@ -94,6 +106,48 @@ export default function TechByte({ concept }) {
     if (a.unsure) return "#60a5fa";
     return a.correct ? "#4ade80" : "#f87171";
   };
+
+  if (!gateState.checked) {
+    return (
+      <div style={styles.root}>
+        <p style={styles.loadingNote}>載入中...</p>
+      </div>
+    );
+  }
+
+  if (gateState.locked) {
+    const unlockLabel =
+      gateState.daysUntil === 1 ? "明天" : `${gateState.daysUntil} 天後`;
+    return (
+      <div style={styles.root}>
+        <style>{css}</style>
+        <div style={styles.dayMeta} className="tb-day-meta">
+          <span style={styles.dayBadge}>Day {concept.day}</span>
+          <span style={styles.metaRight}>🔒 尚未解鎖</span>
+        </div>
+        <div style={styles.page} className="fade-in tb-page">
+          <div style={styles.lockWrap}>
+            <div style={styles.lockIcon}>🔒</div>
+            <h1 style={styles.lockTitle} className="tb-title">
+              {unlockLabel}解鎖
+            </h1>
+            <p style={styles.lockSub}>
+              <span style={styles.lockTag}>{concept.tag}</span>
+              <span style={styles.lockConceptTitle}>{concept.title}</span>
+            </p>
+            <p style={styles.lockHint}>
+              一天一個概念，慢慢累積。{unlockLabel}本地時間 00:00 後再回來。
+            </p>
+            <Link href="/" style={{ textDecoration: "none" }}>
+              <button style={styles.btn} className="tb-btn btn-hover">
+                ← 回到今天
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.root}>
@@ -633,6 +687,58 @@ const styles = {
     marginBottom: 6,
   },
   resultNextSub: { fontSize: 13, color: "#666", lineHeight: 1.5 },
+  loadingNote: {
+    textAlign: "center",
+    fontSize: 13,
+    color: "#555",
+    fontFamily: "monospace",
+    padding: "80px 24px",
+  },
+  lockWrap: {
+    textAlign: "center",
+    padding: "60px 16px 24px",
+  },
+  lockIcon: {
+    fontSize: 56,
+    marginBottom: 18,
+    opacity: 0.85,
+  },
+  lockTitle: {
+    fontSize: 32,
+    fontWeight: 700,
+    color: "#facc15",
+    marginBottom: 14,
+    letterSpacing: -0.5,
+  },
+  lockSub: {
+    fontSize: 14,
+    color: "#888",
+    marginBottom: 28,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    alignItems: "center",
+  },
+  lockTag: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#facc15",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  lockConceptTitle: {
+    fontSize: 18,
+    color: "#c8c8c0",
+    fontWeight: 700,
+  },
+  lockHint: {
+    fontSize: 13,
+    color: "#666",
+    lineHeight: 1.7,
+    marginBottom: 32,
+    maxWidth: 360,
+    margin: "0 auto 32px",
+  },
 };
 
 const css = `

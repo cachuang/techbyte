@@ -70,3 +70,11 @@ npm run dev
 - `npm run dev` — 本機 dev
 - `npm run build` — production build
 - `npm run gen:concept -- --day N` — 用 Claude 生成概念草稿（可選）
+
+## Daily release（每日解鎖）
+
+- 「Day 1」起算點 = 使用者第一次造訪那一天（存 localStorage `techbyte_first_visit`，YYYY-MM-DD）
+- 換日依使用者**本地時區** 00:00（不是 UTC）
+- 已解鎖的天可以隨時補做（不需照順序）
+- 未解鎖的未來天在首頁顯示「明天解鎖」/「N 天後」並 disabled，直接訪問 `/day/N` 會看到鎖定畫面
+- 軟限制 — 改 localStorage 即可繞過。MVP 階段不擋這層
