@@ -191,7 +191,7 @@ const styles = {
     flex: 1,
   },
   statValue: {
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
     fontSize: 32,
     fontWeight: 700,
     lineHeight: 1,
@@ -238,7 +238,7 @@ const styles = {
     marginBottom: 4,
   },
   groupTag: {
-    fontFamily: "'Georgia', 'Noto Serif TC', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
     fontSize: 15,
     fontWeight: 700,
     color: "#fbbf24",
@@ -277,7 +277,7 @@ const styles = {
     transition: "all 0.2s",
   },
   day: {
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
     fontSize: 14,
     fontWeight: 700,
     color: "#888",
