@@ -1,7 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { concepts } from "@/data/concepts";
+import { getCurrentDay } from "@/lib/day-progress";
 
 export default function Home() {
+  const [currentDay, setCurrentDay] = useState(null);
+
+  useEffect(() => {
+    setCurrentDay(getCurrentDay());
+  }, []);
+
   return (
     <div style={styles.root}>
       <p style={styles.tagline} className="tb-tagline">
@@ -11,9 +21,33 @@ export default function Home() {
       <ul style={styles.list}>
         {concepts.map((c) => {
           const isReady = !!c.questions;
+          // currentDay null = SSR/初次渲染，先當作全部解鎖避免 layout flicker
+          const beforeFirstVisit = currentDay == null;
+          const isToday = !beforeFirstVisit && c.day === currentDay;
+          const isFuture = !beforeFirstVisit && c.day > currentDay;
+          const daysUntil = isFuture ? c.day - currentDay : 0;
+          const isUnlocked = isReady && !isFuture;
+
+          let statusLabel;
+          if (!isReady) statusLabel = "soon";
+          else if (isFuture) statusLabel = daysUntil === 1 ? "明天" : `${daysUntil} 天後`;
+          else if (isToday) statusLabel = "今天";
+          else statusLabel = "→";
+
+          const statusColor = isToday
+            ? "#facc15"
+            : isFuture
+            ? "#555"
+            : "#444";
+
           const inner = (
             <div
-              style={{ ...styles.row, opacity: isReady ? 1 : 0.4 }}
+              style={{
+                ...styles.row,
+                opacity: isUnlocked ? 1 : isFuture ? 0.45 : 0.4,
+                borderLeft: isToday ? "3px solid #facc15" : "3px solid transparent",
+                paddingLeft: isToday ? 25 : 28,
+              }}
               className="tb-day-row"
             >
               <span style={styles.day}>Day {String(c.day).padStart(2, "0")}</span>
@@ -28,12 +62,16 @@ export default function Home() {
                   {c.tag}
                 </span>
               </span>
-              <span style={styles.status}>{isReady ? "→" : "soon"}</span>
+              <span style={{ ...styles.status, color: statusColor }}>
+                {isFuture && <span style={styles.lockIcon}>⏳ </span>}
+                {statusLabel}
+              </span>
             </div>
           );
+
           return (
             <li key={c.day} style={styles.item}>
-              {isReady ? (
+              {isUnlocked ? (
                 <Link href={`/day/${c.day}`} style={styles.link}>
                   {inner}
                 </Link>
@@ -69,7 +107,7 @@ const styles = {
   link: { textDecoration: "none", color: "inherit", display: "block" },
   row: {
     display: "grid",
-    gridTemplateColumns: "70px 90px 1fr 40px",
+    gridTemplateColumns: "70px 90px 1fr 64px",
     alignItems: "center",
     gap: 16,
     padding: "16px 28px",
@@ -100,5 +138,7 @@ const styles = {
     fontSize: 11,
     color: "#444",
     textAlign: "right",
+    letterSpacing: 0.5,
   },
+  lockIcon: { marginRight: 2 },
 };
