@@ -68,7 +68,7 @@ const styles = {
   logo: {
     fontFamily: "'Courier New', monospace",
     fontSize: 16,
-    color: "#facc15",
+    color: "#d4b87a",
     letterSpacing: 2,
     fontWeight: 700,
   },
@@ -93,7 +93,7 @@ const styles = {
   },
   linkBtn: {
     background: "transparent",
-    color: "#facc15",
+    color: "#d4b87a",
     border: "1px solid #2a2a2a",
     borderRadius: 6,
     padding: "6px 12px",

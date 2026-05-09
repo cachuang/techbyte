@@ -124,8 +124,8 @@ const styles = {
   },
   rowToday: {
     background:
-      "linear-gradient(90deg, rgba(250, 204, 21, 0.08) 0%, rgba(250, 204, 21, 0.02) 60%, transparent 100%)",
-    borderLeft: "3px solid #facc15",
+      "linear-gradient(90deg, rgba(212, 184, 122, 0.08) 0%, rgba(212, 184, 122, 0.02) 60%, transparent 100%)",
+    borderLeft: "3px solid #d4b87a",
   },
   rowFuture: {
     opacity: 0.55,
@@ -158,7 +158,7 @@ const styles = {
     fontFamily: "'Georgia', serif",
     fontSize: 28,
     fontWeight: 700,
-    color: "#facc15",
+    color: "#d4b87a",
     letterSpacing: -1.2,
     lineHeight: 1,
     fontFeatureSettings: '"tnum"',
@@ -173,7 +173,7 @@ const styles = {
   tag: {
     fontFamily: "'Georgia', 'Noto Serif TC', serif",
     fontSize: 12,
-    color: "#fbbf24",
+    color: "#b89968",
     fontWeight: 500,
     letterSpacing: 0.3,
   },
@@ -222,7 +222,7 @@ const styles = {
     textTransform: "uppercase",
   },
   todayBadge: {
-    background: "#facc15",
+    background: "#d4b87a",
     color: "#0a0a0a",
     padding: "4px 10px",
     borderRadius: 12,
@@ -230,6 +230,6 @@ const styles = {
     fontSize: 10.5,
     letterSpacing: 1.2,
     fontFamily: "'Courier New', monospace",
-    boxShadow: "0 0 16px rgba(250, 204, 21, 0.25)",
+    boxShadow: "0 0 16px rgba(212, 184, 122, 0.25)",
   },
 };

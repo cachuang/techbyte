@@ -6,8 +6,8 @@ import { concepts } from "@/data/concepts";
 
 const STATUS = {
   mastered: {
-    dot: "#facc15",
-    border: "rgba(250, 204, 21, 0.35)",
+    dot: "#d4b87a",
+    border: "rgba(212, 184, 122, 0.35)",
     label: "已掌握",
     rank: 0,
   },
@@ -85,7 +85,7 @@ export default function KnowledgeMap({ attempts }) {
       {/* 數據總覽卡 */}
       <div style={styles.statsCard}>
         <div style={styles.statsRow}>
-          <Stat value={stats.mastered} label="已掌握" color="#facc15" />
+          <Stat value={stats.mastered} label="已掌握" color="#d4b87a" />
           <Stat value={stats.attempted} label="嘗試中" color="#f59e0b" />
           <Stat value={stats.untouched} label="未做" color="#888" />
         </div>
@@ -212,7 +212,7 @@ const styles = {
   },
   progressFill: {
     height: "100%",
-    background: "linear-gradient(90deg, #facc15 0%, #fbbf24 100%)",
+    background: "linear-gradient(90deg, #d4b87a 0%, #b89968 100%)",
     borderRadius: 3,
     transition: "width 0.4s ease",
   },
@@ -241,7 +241,7 @@ const styles = {
     fontFamily: "'Georgia', 'Noto Serif TC', serif",
     fontSize: 15,
     fontWeight: 700,
-    color: "#fbbf24",
+    color: "#b89968",
     letterSpacing: 0.3,
   },
   groupCount: {
