@@ -47,7 +47,7 @@ a {
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
-  outline: 2px solid #d4b87a;
+  outline: 2px solid #facc15;
   outline-offset: 2px;
 }
 
@@ -202,7 +202,7 @@ a:focus:not(:focus-visible) {
     font-size: 15px !important;
   }
   .tb-reading {
-    margin-top: 22px !important;
+    padding: 14px 16px !important;
   }
   .tb-result-icon {
     font-size: 56px !important;
@@ -295,10 +295,10 @@ a:focus:not(:focus-visible) {
 @media (hover: hover) {
   .btn-hover:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 24px rgba(212, 184, 122, 0.22);
+    box-shadow: 0 6px 24px rgba(250, 204, 21, 0.25);
   }
   .option-hover:hover {
-    border-color: #d4b87a !important;
+    border-color: #facc15 !important;
     cursor: pointer;
   }
 }

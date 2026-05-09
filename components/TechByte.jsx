@@ -99,7 +99,7 @@ export default function TechByte({ concept }) {
     : "";
 
   const dotColor = (i) => {
-    if (i === currentQ) return "#d4b87a";
+    if (i === currentQ) return "#facc15";
     if (i > currentQ) return "#2a2a2a";
     const a = answers[i];
     if (!a) return "#2a2a2a";
@@ -269,7 +269,7 @@ export default function TechByte({ concept }) {
               let borderColor = "#2a2a2a";
               let bg = "#111";
               if (selected === opt.id && !confirmed) {
-                borderColor = "#d4b87a";
+                borderColor = "#facc15";
                 bg = "#1a1800";
               }
               if (confirmed && opt.correct) {
@@ -403,24 +403,23 @@ export default function TechByte({ concept }) {
           </div>
 
           {concept.furtherReading?.length > 0 && (
-            <div style={styles.readingWrap} className="tb-reading">
-              <div style={styles.readingLabel}>延伸閱讀</div>
-              <div style={styles.readingChips}>
+            <div style={styles.readingCard} className="tb-reading">
+              <div style={styles.readingLabel}>📚 想再深入</div>
+              <ul style={styles.readingList}>
                 {concept.furtherReading.map((r, i) => (
-                  <a
-                    key={i}
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={r.why}
-                    style={styles.readingChip}
-                    className="tb-chip"
-                  >
-                    <span style={styles.readingChipTitle}>{r.title}</span>
-                    <span style={styles.readingChipArrow}>↗</span>
-                  </a>
+                  <li key={i} style={styles.readingItem}>
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.readingLink}
+                    >
+                      {r.title} ↗
+                    </a>
+                    <div style={styles.readingWhy}>{r.why}</div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
 
@@ -478,7 +477,7 @@ const styles = {
   tag: {
     fontSize: 11,
     letterSpacing: 2,
-    color: "#d4b87a",
+    color: "#facc15",
     fontFamily: "'Courier New', monospace",
     textTransform: "uppercase",
   },
@@ -506,7 +505,7 @@ const styles = {
     alignItems: "flex-start",
     background: "#111",
     border: "1px solid #222",
-    borderLeft: "3px solid #d4b87a",
+    borderLeft: "3px solid #facc15",
     borderRadius: 8,
     padding: "16px 20px",
     margin: "28px 0",
@@ -514,7 +513,7 @@ const styles = {
   analogyIcon: { fontSize: 28, flexShrink: 0 },
   analogyTitle: {
     fontSize: 13,
-    color: "#d4b87a",
+    color: "#facc15",
     letterSpacing: 1,
     fontFamily: "monospace",
     marginBottom: 6,
@@ -544,7 +543,7 @@ const styles = {
   },
   progressFill: {
     height: "100%",
-    background: "#d4b87a",
+    background: "#facc15",
     borderRadius: 2,
     transition: "width 0.1s linear",
   },
@@ -552,7 +551,7 @@ const styles = {
   btn: {
     width: "100%",
     padding: "16px",
-    background: "#d4b87a",
+    background: "#facc15",
     color: "#0a0a0a",
     border: "none",
     borderRadius: 8,
@@ -659,7 +658,7 @@ const styles = {
     lineHeight: 1.5,
   },
   miscLabel: {
-    color: "#d4b87a",
+    color: "#facc15",
     fontFamily: "monospace",
     fontSize: 11,
     marginRight: 8,
@@ -772,7 +771,7 @@ const styles = {
   originCard: {
     background: "#13110a",
     border: "1px solid #2a261a",
-    borderLeft: "3px solid #b89968",
+    borderLeft: "3px solid #fbbf24",
     borderRadius: 8,
     padding: "14px 18px",
     margin: "20px 0",
@@ -780,7 +779,7 @@ const styles = {
   originLabel: {
     fontFamily: "'Courier New', monospace",
     fontSize: 10,
-    color: "#b89968",
+    color: "#fbbf24",
     letterSpacing: 1.5,
     fontWeight: 700,
     marginBottom: 8,
@@ -792,7 +791,7 @@ const styles = {
   },
   oneLinerCard: {
     background:
-      "linear-gradient(135deg, rgba(212, 184, 122, 0.08) 0%, rgba(212, 184, 122, 0.02) 100%)",
+      "linear-gradient(135deg, rgba(250, 204, 21, 0.08) 0%, rgba(250, 204, 21, 0.02) 100%)",
     border: "1px solid #2a261a",
     borderRadius: 8,
     padding: "16px 20px",
@@ -801,7 +800,7 @@ const styles = {
   oneLinerLabel: {
     fontFamily: "'Courier New', monospace",
     fontSize: 11,
-    color: "#d4b87a",
+    color: "#facc15",
     letterSpacing: 1.5,
     fontWeight: 700,
     marginBottom: 8,
@@ -813,44 +812,43 @@ const styles = {
     fontStyle: "italic",
     fontWeight: 500,
   },
-  readingWrap: {
+  readingCard: {
+    background: "#111",
+    border: "1px solid #222",
+    borderRadius: 10,
+    padding: "16px 20px",
     marginTop: 28,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   readingLabel: {
     fontFamily: "'Courier New', monospace",
-    fontSize: 10,
-    color: "#7a766c",
-    letterSpacing: 1.8,
-    fontWeight: 700,
-    marginBottom: 10,
-    textTransform: "uppercase",
-  },
-  readingChips: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  readingChip: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "8px 12px",
-    background: "transparent",
-    border: "1px solid #2a2a2a",
-    borderRadius: 6,
-    color: "#dcd8cc",
-    textDecoration: "none",
-    lineHeight: 1.4,
-    transition: "all 0.15s ease",
-  },
-  readingChipTitle: {
-    fontSize: 12.5,
-    fontWeight: 500,
-  },
-  readingChipArrow: {
     fontSize: 11,
-    color: "#7a766c",
+    color: "#facc15",
+    letterSpacing: 1.5,
+    fontWeight: 700,
+    marginBottom: 14,
+  },
+  readingList: {
+    listStyle: "none",
+    padding: 0,
+    margin: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
+  readingItem: {},
+  readingLink: {
+    color: "#fbbf24",
+    fontSize: 14,
+    textDecoration: "none",
+    fontWeight: 600,
+    display: "inline-block",
+    marginBottom: 4,
+  },
+  readingWhy: {
+    fontSize: 12,
+    color: "#888",
+    lineHeight: 1.6,
   },
   loadingNote: {
     textAlign: "center",
@@ -871,7 +869,7 @@ const styles = {
   lockTitle: {
     fontSize: 32,
     fontWeight: 700,
-    color: "#d4b87a",
+    color: "#facc15",
     marginBottom: 14,
     letterSpacing: -0.5,
   },
@@ -887,7 +885,7 @@ const styles = {
   lockTag: {
     fontFamily: "'Courier New', monospace",
     fontSize: 11,
-    color: "#d4b87a",
+    color: "#facc15",
     letterSpacing: 1.5,
     textTransform: "uppercase",
   },
@@ -909,10 +907,6 @@ const styles = {
 const css = `
   .fade-in { animation: fadeIn 0.35s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  .btn-hover:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(212,184,122,0.22); }
-  .option-hover:hover { border-color: #d4b87a !important; cursor: pointer; }
-  @media (hover: hover) {
-    .tb-chip:hover { border-color: #d4b87a !important; color: #d4b87a !important; }
-    .tb-chip:hover > span { color: inherit !important; }
-  }
+  .btn-hover:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(250,204,21,0.25); }
+  .option-hover:hover { border-color: #facc15 !important; cursor: pointer; }
 `;
