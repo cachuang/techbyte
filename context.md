@@ -57,7 +57,7 @@
 │   ├── auth-context.jsx        # useAuth() hook
 │   └── day-progress.js         # daily release localStorage logic
 ├── scripts/
-│   └── gen-concept.mjs         # 用 Claude 生內容草稿（保留，但近期沒用）
+│   └── gen-concept.mjs         # 用 Claude 生內容草稿（含 reviewer pass，見 §11.5）
 ├── README.md                   # 部署 / 開發說明
 └── context.md                  # 你正在讀的這份
 ```
@@ -296,6 +296,22 @@ CTA（手機 sticky bottom）
 - **舉例要具體**: 「100 台伺服器」勝過「在分散式環境」
 - **誤解要點出來**: 每題 misconception 是一句話的「常見錯誤思考方式」
 - **中英文混排自然**: 技術名詞英文（JWT, Closure, Race Condition），框架用語可中文（陣列、字串）
+
+### 11.5 內容產生流程（必照）
+
+新內容**一律走 `scripts/gen-concept.mjs` 兩段式管線**，不要手寫貼進 `data/concepts.js`：
+
+1. **Generation pass** — Claude Opus 4.7、`thinking: adaptive`、`effort: high`、Zod schema 強制結構。產出落 `data/drafts/day-N.json`。
+2. **Reviewer pass**（預設啟用，`--no-review` 才跳過）— 同個 model、共用 cached VOICE，但角色換成「挑刺工程師」。產出落 `data/drafts/day-N.review.md`，含 verdict (`pass` / `needs-edit` / `rewrite`) 與 issues[]（severity `blocker` / `warn` / `nit`）。
+
+**Merge 進 concepts.js 前的硬性條件**：
+
+- 所有 `blocker` 必須處理（事實錯誤、選項邏輯崩壞）
+- `verdict: rewrite` → 重生，不是手動補丁
+- `warn` 至少要看過、決定「修」或「明確不修」（commit message 解釋為什麼）
+- `nit` 可選擇性處理
+
+Reviewer 不是橡皮圖章。事實層面 reviewer 也可能錯（特別是冷僻領域），但結構問題（選項立場重疊、循環論證、類比破綻）reviewer 抓得很準，**不要忽略它的結構抓錯**。
 
 ---
 
