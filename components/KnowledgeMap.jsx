@@ -1,106 +1,37 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { ReactFlow, Background, Controls } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import Link from "next/link";
 import { concepts } from "@/data/concepts";
 
 const STATUS = {
-  mastered: { bg: "#facc15", border: "#facc15", text: "#0a0a0a", label: "已掌握" },
-  attempted: { bg: "#1f1810", border: "#f59e0b", text: "#f59e0b", label: "嘗試中" },
-  untouched: { bg: "#111", border: "#2a2a2a", text: "#666", label: "未做" },
+  mastered: {
+    dot: "#facc15",
+    border: "rgba(250, 204, 21, 0.35)",
+    label: "已掌握",
+    rank: 0,
+  },
+  attempted: {
+    dot: "#f59e0b",
+    border: "rgba(245, 158, 11, 0.3)",
+    label: "嘗試中",
+    rank: 1,
+  },
+  untouched: {
+    dot: "#3a3a3a",
+    border: "#1c1c20",
+    label: "未做",
+    rank: 2,
+  },
 };
 
-const TAG_STYLE = {
-  width: 130,
-  background: "#0a0a0a",
-  border: "1.5px solid #facc15",
-  color: "#facc15",
-  fontFamily: "'Courier New', monospace",
-  fontSize: 12,
-  fontWeight: 700,
-  letterSpacing: 1,
-  padding: "8px 12px",
-  borderRadius: 8,
-};
-
-function buildGraph(bestScoreByDay) {
-  const tags = [...new Set(concepts.map((c) => c.tag))];
-  const nodes = [];
-  const edges = [];
-  const center = { x: 400, y: 320 };
-  const tagRadius = 220;
-  const conceptOffset = 150;
-
-  tags.forEach((tag, i) => {
-    const angle = (i * 2 * Math.PI) / tags.length - Math.PI / 2;
-    const tx = center.x + tagRadius * Math.cos(angle);
-    const ty = center.y + tagRadius * Math.sin(angle);
-
-    nodes.push({
-      id: `tag-${tag}`,
-      position: { x: tx, y: ty },
-      data: { label: tag },
-      style: TAG_STYLE,
-      sourcePosition: "right",
-      targetPosition: "left",
-      draggable: false,
-      selectable: false,
-    });
-
-    const tagConcepts = concepts.filter((c) => c.tag === tag);
-    tagConcepts.forEach((c, j) => {
-      const spread =
-        tagConcepts.length === 1
-          ? 0
-          : (j - (tagConcepts.length - 1) / 2) * 0.32;
-      const cAngle = angle + spread;
-      const cx = tx + conceptOffset * Math.cos(cAngle);
-      const cy = ty + conceptOffset * Math.sin(cAngle);
-
-      const score = bestScoreByDay[c.day];
-      const status =
-        score == null ? "untouched" : score >= 2 ? "mastered" : "attempted";
-      const s = STATUS[status];
-
-      nodes.push({
-        id: `concept-${c.day}`,
-        position: { x: cx, y: cy },
-        data: {
-          label: `Day ${c.day} · ${c.title}${score != null ? ` (${score}/3)` : ""}`,
-          day: c.day,
-        },
-        style: {
-          width: 170,
-          background: s.bg,
-          border: `1.5px solid ${s.border}`,
-          color: s.text,
-          padding: "8px 10px",
-          borderRadius: 8,
-          fontSize: 12,
-          fontFamily: "inherit",
-          cursor: "pointer",
-        },
-        draggable: false,
-      });
-
-      edges.push({
-        id: `e-${tag}-${c.day}`,
-        source: `tag-${tag}`,
-        target: `concept-${c.day}`,
-        style: { stroke: status === "mastered" ? "#facc15" : "#2a2a2a" },
-        animated: status === "mastered",
-      });
-    });
-  });
-
-  return { nodes, edges };
+function classify(score) {
+  if (score == null) return "untouched";
+  if (score >= 2) return "mastered";
+  return "attempted";
 }
 
 export default function KnowledgeMap({ attempts }) {
-  const router = useRouter();
-
   const bestScoreByDay = useMemo(() => {
     const map = {};
     for (const a of attempts ?? []) {
@@ -110,37 +41,263 @@ export default function KnowledgeMap({ attempts }) {
     return map;
   }, [attempts]);
 
-  const { nodes, edges } = useMemo(
-    () => buildGraph(bestScoreByDay),
-    [bestScoreByDay],
+  const ready = useMemo(
+    () => concepts.filter((c) => c.questions),
+    [],
   );
 
-  const handleNodeClick = (_event, node) => {
-    if (node.id.startsWith("concept-") && node.data?.day) {
-      router.push(`/day/${node.data.day}`);
+  const stats = useMemo(() => {
+    let mastered = 0;
+    let attempted = 0;
+    for (const c of ready) {
+      const status = classify(bestScoreByDay[c.day]);
+      if (status === "mastered") mastered++;
+      else if (status === "attempted") attempted++;
     }
-  };
+    return {
+      total: ready.length,
+      mastered,
+      attempted,
+      untouched: ready.length - mastered - attempted,
+    };
+  }, [bestScoreByDay, ready]);
+
+  const grouped = useMemo(() => {
+    const byTag = new Map();
+    for (const c of ready) {
+      if (!byTag.has(c.tag)) byTag.set(c.tag, []);
+      byTag.get(c.tag).push(c);
+    }
+    return Array.from(byTag, ([tag, list]) => ({
+      tag,
+      list: list.slice().sort((a, b) => a.day - b.day),
+      mastered: list.filter(
+        (c) => classify(bestScoreByDay[c.day]) === "mastered",
+      ).length,
+    }));
+  }, [bestScoreByDay, ready]);
+
+  const masteredPct =
+    stats.total === 0 ? 0 : Math.round((stats.mastered / stats.total) * 100);
 
   return (
-    <div
-      className="tb-map-canvas"
-      style={{ height: "70vh", background: "#0a0a0a", borderRadius: 8 }}
-    >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodeClick={handleNodeClick}
-        fitView
-        fitViewOptions={{ padding: 0.15 }}
-        nodesConnectable={false}
-        nodesFocusable
-        panOnScroll={false}
-        zoomOnScroll={true}
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background color="#1e1e1e" gap={24} />
-        <Controls showInteractive={false} />
-      </ReactFlow>
+    <div style={styles.wrap}>
+      {/* 數據總覽卡 */}
+      <div style={styles.statsCard}>
+        <div style={styles.statsRow}>
+          <Stat value={stats.mastered} label="已掌握" color="#facc15" />
+          <Stat value={stats.attempted} label="嘗試中" color="#f59e0b" />
+          <Stat value={stats.untouched} label="未做" color="#888" />
+        </div>
+        <div style={styles.progressBar}>
+          <div
+            style={{
+              ...styles.progressFill,
+              width: `${masteredPct}%`,
+            }}
+          />
+        </div>
+        <div style={styles.progressLabel}>
+          掌握進度 {masteredPct}%（{stats.mastered} / {stats.total}）
+        </div>
+      </div>
+
+      {/* 依領域分組的列表 */}
+      <div style={styles.groups}>
+        {grouped.map(({ tag, list, mastered }) => (
+          <section key={tag} style={styles.group}>
+            <header style={styles.groupHeader}>
+              <span style={styles.groupTag}>{tag}</span>
+              <span style={styles.groupCount}>
+                {mastered} / {list.length}
+              </span>
+            </header>
+            <ul style={styles.list}>
+              {list.map((c) => {
+                const score = bestScoreByDay[c.day];
+                const status = classify(score);
+                const s = STATUS[status];
+                return (
+                  <li key={c.day} style={styles.itemWrap}>
+                    <Link href={`/day/${c.day}`} style={styles.item}>
+                      <span
+                        style={{
+                          ...styles.dot,
+                          background: s.dot,
+                          boxShadow:
+                            status === "mastered"
+                              ? `0 0 8px ${s.dot}88`
+                              : "none",
+                        }}
+                      />
+                      <span style={styles.day}>
+                        {String(c.day).padStart(2, "0")}
+                      </span>
+                      <span style={styles.title}>{c.title}</span>
+                      <span
+                        style={{
+                          ...styles.score,
+                          color:
+                            status === "untouched" ? "#444" : s.dot,
+                        }}
+                      >
+                        {score != null ? `${score}/3` : "—"}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
+
+function Stat({ value, label, color }) {
+  return (
+    <div style={styles.statBox}>
+      <span style={{ ...styles.statValue, color }}>{value}</span>
+      <span style={styles.statLabel}>{label}</span>
+    </div>
+  );
+}
+
+const styles = {
+  wrap: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 24,
+  },
+
+  statsCard: {
+    background: "#141418",
+    border: "1px solid #1c1c20",
+    borderRadius: 12,
+    padding: "20px 22px",
+  },
+  statsRow: {
+    display: "flex",
+    justifyContent: "space-around",
+    gap: 12,
+    marginBottom: 18,
+  },
+  statBox: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 4,
+    flex: 1,
+  },
+  statValue: {
+    fontFamily: "'Georgia', serif",
+    fontSize: 32,
+    fontWeight: 700,
+    lineHeight: 1,
+    fontFeatureSettings: '"tnum"',
+  },
+  statLabel: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#888",
+    letterSpacing: 1,
+  },
+  progressBar: {
+    height: 6,
+    background: "#1c1c20",
+    borderRadius: 3,
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: "100%",
+    background: "linear-gradient(90deg, #facc15 0%, #fbbf24 100%)",
+    borderRadius: 3,
+    transition: "width 0.4s ease",
+  },
+  progressLabel: {
+    fontSize: 12,
+    color: "#7a766c",
+    fontFamily: "'Courier New', monospace",
+    letterSpacing: 0.3,
+  },
+
+  groups: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 18,
+  },
+  group: {},
+  groupHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    padding: "0 4px 10px",
+    borderBottom: "1px solid #1c1c20",
+    marginBottom: 4,
+  },
+  groupTag: {
+    fontFamily: "'Georgia', 'Noto Serif TC', serif",
+    fontSize: 15,
+    fontWeight: 700,
+    color: "#fbbf24",
+    letterSpacing: 0.3,
+  },
+  groupCount: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#7a766c",
+    letterSpacing: 0.5,
+  },
+
+  list: {
+    listStyle: "none",
+    padding: 0,
+    margin: 0,
+  },
+  itemWrap: {
+    borderBottom: "1px solid #15151a",
+  },
+  item: {
+    display: "grid",
+    gridTemplateColumns: "16px 36px 1fr auto",
+    alignItems: "center",
+    gap: 12,
+    padding: "14px 6px",
+    textDecoration: "none",
+    color: "inherit",
+    transition: "background 0.15s",
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    flexShrink: 0,
+    transition: "all 0.2s",
+  },
+  day: {
+    fontFamily: "'Georgia', serif",
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#888",
+    letterSpacing: -0.3,
+    fontFeatureSettings: '"tnum"',
+  },
+  title: {
+    fontSize: 14.5,
+    color: "#dcd8cc",
+    lineHeight: 1.4,
+    minWidth: 0,
+    wordBreak: "break-word",
+    fontWeight: 500,
+  },
+  score: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    minWidth: 28,
+    textAlign: "right",
+  },
+};
