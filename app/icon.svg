@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#0a0a0a"/>
+  <g fill="#facc15">
+    <circle cx="5.5" cy="11" r="2.5"/>
+    <circle cx="12.5" cy="11" r="2.5"/>
+    <circle cx="19.5" cy="11" r="2.5"/>
+    <circle cx="26.5" cy="11" r="2.5"/>
+    <circle cx="5.5" cy="21" r="2.5"/>
+    <circle cx="12.5" cy="21" r="2.5"/>
+    <circle cx="19.5" cy="21" r="2.5"/>
+    <circle cx="26.5" cy="21" r="2.5"/>
+  </g>
+</svg>
