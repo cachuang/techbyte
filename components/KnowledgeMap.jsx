@@ -120,13 +120,13 @@ export default function KnowledgeMap({ attempts }) {
         </div>
         <div style={styles.legend}>
           <span style={{ ...styles.legendItem, color: LEVEL_COLOR[1] }}>
-            L1 基礎
+            L1 {LEVEL_TITLE[1]}
           </span>
           <span style={{ ...styles.legendItem, color: LEVEL_COLOR[2] }}>
-            L2 取捨
+            L2 {LEVEL_TITLE[2]}
           </span>
           <span style={{ ...styles.legendItem, color: LEVEL_COLOR[3] }}>
-            L3 細節
+            L3 {LEVEL_TITLE[3]}
           </span>
         </div>
       </div>
