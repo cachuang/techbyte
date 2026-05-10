@@ -2384,7 +2384,88 @@ const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
     tag: "網路",
     title: "HTTP 基礎",
     hook: "為什麼瀏覽器跟伺服器要用一套這麼囉唆的對話協議？",
-    analogyHint: "點餐櫃台 vs 自助餐",
+    body: `當你在瀏覽器打 google.com，背後到底發生什麼事？瀏覽器送一個 HTTP request 給 Google 伺服器，伺服器回一個 response。看起來簡單，但這個對話的格式從 1991 年的 HTTP/0.9 一直被釘成標準，讓全世界的瀏覽器都能跟全世界的伺服器溝通。每一個 request 都是獨立的——伺服器不會自動記得你上次問過什麼，這叫做「stateless」。
+
+HTTP 的核心三件事：method 講「你想做什麼」(GET 拿、POST 送、PUT 換、DELETE 刪)，header 講「附加資訊」(我是誰、我要什麼格式、我有什麼 cookie)，status code 講「結果如何」(200 成功、404 找不到、500 我壞了)。狀態管理因為 stateless 是個難題，cookie 是常見解法——伺服器讓你帶著一張「你是誰」的小紙條，每次 request 都自動附上。`,
+    analogy: {
+      icon: "🍔",
+      title: "速食店點餐窗口 vs 餐桌服務",
+      text: "HTTP 像速食店窗口——你過去說「我要一個漢堡」（request）、店員給你漢堡（response），交易結束、店員不認得你。Cookie 像會員卡——你出示卡片、店員看一眼就知道你是誰，但你每次都得記得帶著。沒卡片時，店員每次都把你當新客人。",
+    },
+    analogyHint: "速食點餐窗口（stateless）vs 會員卡（cookie）",
+    originStory: "Tim Berners-Lee 1989 年在 CERN 提出 World Wide Web 計畫，1991 年發布的 HTTP/0.9 只有一個 method (GET)、沒有 header、沒有 status code，純粹「拿一份文件回來」。HTTP/1.0 (1996) 加進 method、header、status code，奠定今天的形式。HTTP/1.1 (1999) 加 keep-alive 重用連線，當了二十年的工作牛馬。HTTP/2 (2015) 引入 binary protocol 跟 multiplexing 解決 head-of-line blocking。HTTP/3 (2022) 改用 QUIC 跑在 UDP 上，徹底放棄 TCP。但底層怎麼變，「method + header + status code」這三件事的概念從 1996 年到現在沒變過。",
+    example: {
+      code: `GET /api/users/42 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Cookie: session=abc123
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: max-age=300
+
+{"id": 42, "name": "alice"}`,
+      note: "上面是 request、下面是 response。GET 表示「拿資料」。Cookie header 帶 session ID 讓伺服器認得你。200 表示成功。Cache-Control 告訴瀏覽器這份資料 5 分鐘內可重複使用，不用再問伺服器。",
+    },
+    tradeoffs: [
+      { label: "✅ Stateless 帶來的好處", text: "任何一台伺服器都能處理任何一個 request，方便水平擴展" },
+      { label: "⚠️ 注意", text: "GET 應該無副作用——把寫入塞進 GET 會被爬蟲、prefetch、預覽功能意外觸發" },
+      { label: "❌ 不適合", text: "需要伺服器主動推訊息給客戶端的場景（這是 WebSocket / SSE 的工作）" },
+    ],
+    oneLiner: "HTTP 的精神是「每次對話都從頭來過」——所有 state 要嘛你自己帶（cookie），要嘛伺服器自己存。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "HTTP 是 stateless 的，這句話的意思是？",
+        options: [
+          { id: "a", text: "HTTP 不能傳遞資料，只能傳訊號", correct: false },
+          { id: "b", text: "伺服器不會自動記住你之前的 request，每個 request 都當作新的處理", correct: true },
+          { id: "c", text: "HTTP 沒有版本，所有實作都一樣", correct: false },
+        ],
+        explanation:
+          "Stateless 指「協定本身不維護對話狀態」——不是沒有資料、也不是沒版本。每個 request 進來，伺服器都當第一次見面。要記得你是誰、要靠 cookie、JWT、session ID 等機制把狀態「帶」過來。這個設計讓任何一台伺服器都能處理任何一個 request，是水平擴展的基礎。",
+        misconception: "Stateless 不代表沒有 state——只是 state 不放在協定裡。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "你的 API 設計一個「使用者按讚」的端點，要選哪個 method？",
+        options: [
+          { id: "a", text: "GET /like?post=42（簡單、直接呼叫就好）", correct: false },
+          { id: "b", text: "POST /likes（按讚是寫入操作，不能用 GET）", correct: true },
+          { id: "c", text: "都行，反正最後送到伺服器處理結果一樣", correct: false },
+        ],
+        explanation:
+          "用 GET 來做寫入會出大事——爬蟲、瀏覽器 prefetch、Slack/iMessage 的連結預覽功能都會自動發 GET。如果你的 GET endpoint 會「按讚」，這些自動行為會無意間幫使用者按讚一堆東西。HTTP method 不是純粹的標籤——基礎設施會根據 method 做行為決策（cache、prefetch、retry），用錯就會被打臉。",
+        misconception: "method 不是 cosmetic——基礎設施會根據 method 做行為決策。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "同事說：「狀態碼 200 = 成功，所以只要 response 是 200 就代表 API 沒問題」。對嗎？",
+        options: [
+          { id: "a", text: "完全正確", correct: false },
+          { id: "b", text: "不一定，業務邏輯錯誤可能仍回 200，要看 response body 才知道", correct: true },
+          { id: "c", text: "200 其實常常代表失敗", correct: false },
+        ],
+        explanation:
+          "HTTP 狀態碼描述的是「協定層」的成功失敗——request 抵達伺服器、伺服器有回應，就是 200。但業務邏輯成不成功是另一件事。GraphQL API 永遠回 200，錯誤放在 response body 的 errors 欄位。某些 REST API 也會把「使用者輸入錯誤」包成 200 + body 標 error。寫客戶端時不能只信 status code，要看 body。",
+        misconception: "200 是「協定成功」，不是「我做的事成功」。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "MDN — HTTP overview",
+        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview",
+        why: "HTTP 入門最佳起點，圖示清楚 + method/status 完整列表",
+      },
+      {
+        title: "High Performance Browser Networking — Brief History of HTTP",
+        url: "https://hpbn.co/brief-history-of-http/",
+        why: "Ilya Grigorik 經典書免費看，從 HTTP/0.9 到 HTTP/2 的演進與性能優化",
+      },
+    ],
   },
   {
     slug: "network-layers",
@@ -2395,7 +2476,75 @@ const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
     tag: "網路",
     title: "Network Layers（網路分層）",
     hook: "為什麼工程師講網路要分四層、五層、七層？多此一舉嗎？",
-    analogyHint: "郵局分工：寫信、地址、運送、發配",
+    body: `當你打開一個網頁，封包從你的電腦到伺服器要經過幾道處理？實際上至少四層：應用層（HTTP 知道「我要拿什麼網頁」）、傳輸層（TCP/UDP 負責「資料完整送到」）、網路層（IP 負責「找到對方的地址」）、連結層（Ethernet/Wi-Fi 負責「把 0/1 訊號送出去」）。每一層只管自己的事，不管其他層怎麼做。
+
+這個分層的價值是**抽換性**——HTTP 不在乎底層是 Wi-Fi 還是光纖、是 IPv4 還是 IPv6，只要 TCP 能可靠送字串。Wi-Fi 也不在乎你傳的是 HTTP 還是視訊串流，只要把 bytes 送到下一站。OSI 模型有 7 層（多了 session、presentation 兩層中介），TCP/IP 模型有 4 層（合併了那些抽象），實際工程裡 4 層比較常用。`,
+    analogy: {
+      icon: "📮",
+      title: "郵局分工：寫信、地址、運送、配發",
+      text: "你寄信時：你寫信內容（應用層）、信封寫地址（網路層）、郵局決定走快遞還是平信（傳輸層）、貨車或飛機運（連結層）。每一層只做自己的事——你寫信不需要知道貨車怎麼開、貨車司機不需要看信件內容。換成電子郵件、傳真、簡訊也是同套流程，只是上層協定變了，下層運送方式不變。",
+    },
+    analogyHint: "信件、信封、運送方式、貨車各管一段",
+    originStory: "OSI 模型 1984 年由 ISO 制定，目標是「全世界統一標準」，定義了 7 層。但 OSI 太理想、太理論——當時 ARPANET 已經跑了十多年的 TCP/IP（4 層），實作簡單、能跑就好。網際網路用 TCP/IP 而不是 OSI 是個歷史轉折——「能用」打敗「完美設計」。今天工程師上課還是學 OSI 7 層（因為 model 漂亮），但寫 code 時看到的多半是 TCP/IP 4 層。Vint Cerf 跟 Bob Kahn 1974 年發表的〈A Protocol for Packet Network Intercommunication〉是 TCP/IP 的起源論文。",
+    oneLiner: "分層 = 每一層只做一件事，互不干擾，讓 Wi-Fi 能載 HTTP 也能載視訊。",
+    tradeoffs: [
+      { label: "✅ 分層的好處", text: "可以單獨升級任何一層（HTTP/1 → HTTP/2 不影響 TCP；IPv4 → IPv6 不影響 HTTP）" },
+      { label: "⚠️ 注意", text: "嚴格遵守「每層只看自己」會犧牲性能；現代加速（QUIC、TCP Fast Open）會跨層做優化" },
+      { label: "❌ 不適合當聖經", text: "model 是抽象，真實 OS 實作不一定真的有 4 個獨立層；用來看技術書就好" },
+    ],
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "在 TCP/IP 模型中，HTTP 屬於哪一層？",
+        options: [
+          { id: "a", text: "應用層", correct: true },
+          { id: "b", text: "傳輸層", correct: false },
+          { id: "c", text: "網路層", correct: false },
+        ],
+        explanation:
+          "應用層處理「你想做什麼」的協定 — HTTP（拿網頁）、SMTP（寄信）、SSH（遠端登入）都在這層。傳輸層是 TCP/UDP，處理「可靠傳送 vs 速度優先」。網路層是 IP，處理「找路徑」。應用層的 HTTP 把訊息丟給傳輸層的 TCP 包成可靠連線、TCP 再丟給 IP 路由——每層往下走一層、每層只負責一件事。",
+        misconception: "「層級」不是技術層級高低，是抽象責任的分工。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "設計即時遊戲的多人連線，要選 TCP 還是 UDP？",
+        options: [
+          { id: "a", text: "TCP，因為更可靠、現代網路都用 TCP", correct: false },
+          { id: "b", text: "UDP 為主，遊戲狀態可以丟封包但不能等慢；交易、登入這種關鍵動作才用 TCP", correct: true },
+          { id: "c", text: "都不對，應該用 HTTP", correct: false },
+        ],
+        explanation:
+          "遊戲的需求是「位置更新要快」——晚到的位置封包不如丟掉、用最新的覆蓋。TCP 為了可靠會重傳丟失的封包，但對遊戲而言這個重傳已經沒用了（玩家已經走到別的地方）。所以即時部分用 UDP，傳輸層自己決定取捨；交易、登入這種「不能弄丟」的部分才用 TCP。這是分層的價值——同一個 app 不同流量可以挑不同傳輸層協定。",
+        misconception: "「可靠」不總是好事——要看你的應用對「晚到」跟「丟失」的容忍度。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "同事說：「OSI 7 層比 TCP/IP 4 層更詳細，所以教科書應該以 OSI 為準」。對嗎？",
+        options: [
+          { id: "a", text: "對，OSI 是國際標準", correct: false },
+          { id: "b", text: "不對，實作世界用 TCP/IP，OSI 只是 mental model 對照表", correct: true },
+          { id: "c", text: "OSI 跟 TCP/IP 是不相容的", correct: false },
+        ],
+        explanation:
+          "OSI 的 7 層是 1984 年由 ISO 制定的「應該」標準，但實際網路從沒用 OSI 跑——TCP/IP 在 OSI 出現之前已經跑了十多年。今天 OSI 主要是教學用的對照表（「presentation 層大概對應 TLS/壓縮」），但真實 OS、protocol stack、書架上的網路書，講的都是 TCP/IP 4 層。OSI 跟 TCP/IP 不是不相容——是 OSI 是理想設計、TCP/IP 是實際用的。",
+        misconception: "「標準」不總是事實上的標準——網際網路的事實標準是 RFC，不是 ISO。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "Cloudflare Learning — What is the OSI model?",
+        url: "https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/",
+        why: "圖示清楚的 7 層解釋，附 OSI vs TCP/IP 對照",
+      },
+      {
+        title: "Beej's Guide to Network Programming",
+        url: "https://beej.us/guide/bgnet/",
+        why: "C/socket 層級的網路寫實，看完真正知道分層在底層怎麼運作",
+      },
+    ],
   },
   {
     slug: "data-structures",
@@ -2406,7 +2555,75 @@ const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
     tag: "演算法",
     title: "資料結構基礎",
     hook: "同樣是「存一堆東西」，為什麼要分 array、hash、tree？",
-    analogyHint: "排隊、字典、家譜",
+    body: `每個資料結構**對某些操作快、對另一些操作慢**——選錯結構，效能差幾百倍。Array 用連續記憶體，按 index 拿東西超快（O(1)），但插入到中間要把後面所有元素往後推（O(n)）。Hash table 用 hash 函數把 key 對到 slot，按 key 查找超快（O(1) 平均），但要付出記憶體（slot 通常比實際元素多）跟「順序不可控」的代價。
+
+Tree（特別是平衡樹如 B-tree、紅黑樹）的查找比 array 慢（O(log n)），但保留順序、支援範圍查詢——「找出所有 18-25 歲的使用者」hash 做不到、B-tree 三秒搞定。沒有最好的結構，只有最適合當下操作的結構。資料庫 index 用 B-tree、JS 的 Map 用 hash table、字串 join 暫存用 array——每個選擇背後都有「我最常做什麼操作」的判斷。`,
+    analogy: {
+      icon: "📚",
+      title: "排隊（array）vs 字典（hash）vs 家譜（tree）",
+      text: "Array 像排隊——按位置找人很快（「第 5 位」），但中間插隊全部要後退一格。Hash 像字典——查「狗」直接翻 D，但你不能問「介於 D 跟 G 之間的字」（沒有順序）。Tree 像家譜——查特定人要走幾層（不像字典直翻），但能輕鬆問「這個人的後代有誰」、「這個年齡層的所有人」。",
+    },
+    analogyHint: "排隊、字典、家譜各擅長不同事",
+    originStory: "資料結構的學術根源在 1960-70 年代，Knuth 的《The Art of Computer Programming》Vol 1 (1968) 是奠基之作。Hash table 由 Hans Peter Luhn 1953 年在 IBM 提出。B-tree 由 Bayer 跟 McCreight 1970 年發明，目標是讓資料庫高效讀寫磁碟。AVL tree (1962)、紅黑樹 (1972) 解決「插入不會讓樹變很歪」的問題。今天的工程師多半不需要從零實作這些——但理解「array vs hash vs tree」的取捨，是看懂資料庫 index 為什麼用 B-tree、redis 為什麼用 hash、git 為什麼用 Merkle tree 的基礎。",
+    oneLiner: "資料結構是「對某些操作快、對另一些操作慢」的取捨；選錯結構，效能差幾百倍。",
+    tradeoffs: [
+      { label: "✅ Array 適合", text: "已知大小、常按 index 拿東西、順序很重要的場景（如 timeline、log）" },
+      { label: "⚠️ Hash 注意", text: "沒有順序、且 key 必須能 hash；最壞情況下衝突會退化到 O(n)" },
+      { label: "❌ Tree 不適合", text: "只想 O(1) 查找、不需要順序的場景（用 hash 比較划算）" },
+    ],
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "「array 的查找是 O(1)」這句話描述的是？",
+        options: [
+          { id: "a", text: "用 index 拿元素的時間複雜度（如 arr[5]）", correct: true },
+          { id: "b", text: "找出 array 裡是否包含某個值的時間複雜度", correct: false },
+          { id: "c", text: "array 裡所有操作都是 O(1)", correct: false },
+        ],
+        explanation:
+          "Array 的 O(1) 是指「按 index 拿東西」——因為 array 用連續記憶體，arr[5] 就是「開始位置 + 5×單元大小」，一次運算搞定。但「array 裡有沒有值 X」這種搜尋是 O(n)，要逐一看過。「找最大值」也是 O(n)。混淆「按 index 拿」跟「按值找」是常見誤解。Hash table 的 O(1) 才是「按 key 找值」。",
+        misconception: "O(1) 描述的是特定操作，不是整個資料結構的所有操作。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "設計一個「最近 10000 個 log entries」的儲存，要選哪個結構？",
+        options: [
+          { id: "a", text: "Array (FIFO ring buffer)，按時間順序排列，舊的擠掉", correct: true },
+          { id: "b", text: "Hash table，key 是 log id", correct: false },
+          { id: "c", text: "Tree，按時間排序", correct: false },
+        ],
+        explanation:
+          "Log 的特性：(1) 大量寫入（append 到尾巴）、(2) 按時間順序、(3) 滿了要丟最舊的。Array 的 ring buffer 完美對應——append 是 O(1)、按 index 也是 O(1)、丟最舊的就是覆寫位置 0。Hash table 沒有順序，「最近 10000 個」這種範圍查詢做不到。Tree 雖然支援順序，但 append 是 O(log n)、記憶體開銷高。Log 的最佳結構是 array。",
+        misconception: "選資料結構要看「我會做哪些操作」，不是憑感覺哪個「先進」。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "同事說：「現在記憶體那麼便宜，所有東西都用 hash table，O(1) 最快」。對嗎？",
+        options: [
+          { id: "a", text: "對，O(1) 永遠是最快的", correct: false },
+          { id: "b", text: "不對，hash 不支援範圍查詢、有衝突最壞 O(n)、且喪失順序", correct: true },
+          { id: "c", text: "對，但 hash table 比較難實作", correct: false },
+        ],
+        explanation:
+          "Hash table 的 O(1) 是「平均」，最壞情況（所有 key 都 hash 到同一個 slot）會退化到 O(n)。它也犧牲了順序——「給我介於 X 跟 Y 之間的所有 key」hash table 完全做不到，要全表掃。資料庫 index 用 B-tree 不用 hash 就是因為要支援 `WHERE age BETWEEN 18 AND 25`、`ORDER BY` 這種查詢。「速度」要拆解成「哪種操作快」。",
+        misconception: "Hash 的 O(1) 是針對「按 key 找值」這一種操作，不是萬用銀彈。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "VisuAlgo",
+        url: "https://visualgo.net/",
+        why: "資料結構動畫網站，按按看就懂 array vs hash vs tree 的差異",
+      },
+      {
+        title: "Big-O Cheat Sheet",
+        url: "https://www.bigocheatsheet.com/",
+        why: "各種資料結構操作的時間複雜度對照表，一張在桌上很有用",
+      },
+    ],
   },
   {
     slug: "memory-model",
@@ -2417,7 +2634,87 @@ const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
     tag: "程式設計",
     title: "記憶體模型（Stack vs Heap）",
     hook: "你宣告的變數最後到底放在哪裡？",
-    analogyHint: "便利貼桌面 vs 倉庫貨架",
+    body: `\`let x = 5;\` 跟 \`let arr = [1, 2, 3];\` 這兩個變數放在記憶體哪裡？答案是不同地方——簡單值（數字、布林）放在 stack，物件、陣列放在 heap。Stack 是函式的「便利貼桌面」，函式進入時開一塊空間放區域變數，函式結束就整塊回收，速度快、自動清理但空間有限。Heap 是「倉庫貨架」，動態大小、生命週期不綁函式，但不會自動清理。
+
+這個分工為什麼重要？因為當你寫 \`let b = a;\`，如果 a 是基本型別 stack 直接 copy，b 是新的 5，改 b 不影響 a。但 a 是物件時，stack 上 a 跟 b 都只是「指向 heap 上同一個物件」的 reference——改 b 等於改 a。這就是「pass by value vs pass by reference」混淆的源頭，也是為什麼 immutability 在某些語言這麼重要。`,
+    analogy: {
+      icon: "📒",
+      title: "便利貼桌面 vs 倉庫貨架",
+      text: "Stack 像桌上的便利貼——函式來了貼一張，函式走了撕掉，桌面總是乾淨。但便利貼很小，只能寫名字、數字。Heap 像倉庫——大型物件（家具、機台）放這裡，桌上只貼一張寫著「貨架 B-7」的便利貼指過去。你把便利貼遞給別人，兩人都指到同一個貨架上的東西——一個改它，另一個也看到改了。",
+    },
+    analogyHint: "便利貼桌面（小、快、自動清）vs 倉庫貨架（大、共享、要管理）",
+    originStory: "Stack/heap 的記憶體分配概念在 ALGOL 60 (1960) 已經奠定。Stack 設計用來支援函式呼叫的巢狀結構（後進先出），heap 用來放「大小編譯時不知道」的動態物件。這個分工延續到今天的所有現代語言——C/C++、Java、Python、JavaScript 都有 stack/heap 區分，差別只在「誰負責清 heap」：C/C++ 你自己 malloc/free、Java/JS 用 GC 自動清。理解這層分工是看懂 race condition、memory leak、reference 行為等進階主題的基礎。",
+    example: {
+      code: `let a = 5;
+let b = a;          // stack: 兩個獨立的 5
+b = 10;
+console.log(a);     // → 5（a 沒被改）
+
+let arr1 = [1, 2, 3];
+let arr2 = arr1;    // stack: 兩個 ref，都指向 heap 上同一個 array
+arr2.push(4);
+console.log(arr1);  // → [1, 2, 3, 4]（arr1 也改了！）`,
+      note: "第一段 a 跟 b 是獨立的數字（stack 上）。第二段 arr1 跟 arr2 是兩個 reference 指向同一個 array（heap 上的同一塊記憶體）。改 arr2 等於改 arr1——這是無數 JS bug 的源頭。",
+    },
+    tradeoffs: [
+      { label: "✅ Stack 的好處", text: "速度快（連續記憶體、CPU cache 友善）、自動清理（函式結束就回收）" },
+      { label: "⚠️ Heap 注意", text: "動態分配比較慢、需要管理生命週期（手動 free 或仰賴 GC）" },
+      { label: "❌ Stack 不適合", text: "大型或大小未知的資料、需要在函式間共享的物件" },
+    ],
+    oneLiner: "Stack 放「值」、heap 放「物件」；變數 = 值（stack）或 reference（heap）。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "JavaScript 裡 `let arr = [1, 2, 3]; let copy = arr;`，`copy.push(4)` 之後 `arr` 變成什麼？",
+        options: [
+          { id: "a", text: "[1, 2, 3]（arr 不會被影響）", correct: false },
+          { id: "b", text: "[1, 2, 3, 4]（arr 跟 copy 是同一個 array 的兩個 reference）", correct: true },
+          { id: "c", text: "Error（不能對複製過的 array push）", correct: false },
+        ],
+        explanation:
+          "在 JS 裡 array 是物件、放在 heap。`let copy = arr` 複製的是 reference（指標），不是 array 本身。所以 arr 跟 copy 都指向 heap 上同一塊記憶體——透過任何一個改它，另一個也看到改變。要做真正的「複製」要用 `[...arr]`、`arr.slice()`、`structuredClone(arr)` 等明確產生新物件的方法。",
+        misconception: "「複製變數」對基本型別跟物件意義不一樣——前者複製值，後者複製 reference。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "函式裡宣告了一個很大的 array (10 萬個元素)，函式結束之後這個 array 會怎樣？",
+        options: [
+          { id: "a", text: "留在 heap 上，要等 GC 才回收", correct: true },
+          { id: "b", text: "立刻消失，因為函式結束 stack 就清空", correct: false },
+          { id: "c", text: "永遠不會回收，造成 memory leak", correct: false },
+        ],
+        explanation:
+          "Array 本身放在 heap（不在 stack）。stack 上只有那個指向 array 的 reference 變數——函式結束時 stack 上的 reference 確實消失。但 heap 上的 array 不會立刻消失，它要等 GC 發現「沒有任何 reference 指著我了」才會清掉。在現代 JS/Java 等 GC 語言裡這通常很快發生，但不是「立刻」。如果有其他地方還持有 reference（如全域變數、closure），array 就不會被清——這是 memory leak 的常見來源。",
+        misconception: "Heap 上的東西不是被「函式結束」清掉，是被「沒人指它了」清掉。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "同事說：「我把 array 從函式裡 return 出來，但 array 是 heap 上的，所以 return 之後就沒了」。對嗎？",
+        options: [
+          { id: "a", text: "對，函式結束 heap 也會清", correct: false },
+          { id: "b", text: "不對，return 出去之後外面持有 reference，GC 不會清掉", correct: true },
+          { id: "c", text: "對，要用全域變數才不會被清", correct: false },
+        ],
+        explanation:
+          "把 heap 上的物件 return 出去，外面的變數會接住那個 reference。GC 看到「外面還有 reference 指著我」就不會清。所以 array 完全可以 return、可以塞到 callback、可以放到 array 裡——只要還有任何路徑能到達它，它就活著。「函式結束 heap 也清」混淆了 stack 跟 heap：stack 上的東西函式結束就清（local 變數的 box 消失），heap 上的物件由 reference 計數決定生死。",
+        misconception: "Heap 的清理由「reachability」決定，不是「scope」決定。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "MDN — Memory Management",
+        url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management",
+        why: "JS 的記憶體管理 + GC 入門，含 mark-and-sweep 圖示",
+      },
+      {
+        title: "Computer Science from the Bottom Up — Memory",
+        url: "https://www.bottomupcs.com/csbu/memory.html",
+        why: "從 OS 層級看 stack/heap 怎麼分配，看完比讀十篇 medium 還清楚",
+      },
+    ],
   },
   {
     slug: "oop-basics",
@@ -2428,7 +2725,94 @@ const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
     tag: "程式設計",
     title: "OOP 基礎",
     hook: "為什麼一段資料 + 一段函式要綁在一個叫做「物件」的東西裡？",
-    analogyHint: "工具箱：螺絲起子知道自己怎麼轉",
+    body: `OOP 的核心觀察是：**資料跟操作那個資料的程式碼很常一起變動**。一個「銀行帳戶」物件包含「餘額」（資料）跟「存款、提款」（方法）——把它們綁在一起，外人只能透過方法操作餘額，不能直接改數字。這叫做 encapsulation（封裝），是 OOP 的第一個價值。
+
+OOP 的三大組成：encapsulation（資料 + 方法綁一起、隱藏內部細節）、inheritance（子類繼承父類，但會帶來緊耦合的問題，後面會講）、polymorphism（同一個方法名在不同類別有不同行為，例：所有 \`Animal\` 都有 \`speak()\`，但 \`Dog.speak()\` 是「汪」、\`Cat.speak()\` 是「喵」）。實作上 class（類別）是「藍圖」、instance（實例）是「按藍圖蓋出來的房子」——\`new Account()\` 就是按 Account 藍圖蓋一個帳戶物件。`,
+    analogy: {
+      icon: "🧰",
+      title: "工具箱：螺絲起子知道自己怎麼轉",
+      text: "螺絲起子是「螺絲頭 + 旋轉動作」綁在一起的物件——你只要說「轉」，它自己處理力的方向、軸心位置。OOP 之前的程式像散落工具：「螺絲頭」（資料）擺一邊、「旋轉動作」（程式碼）另一邊，你要用就要自己組裝。OOP 後物件自帶說明書——`account.deposit(100)` 不需要你知道內部怎麼運算，物件自己懂。",
+    },
+    analogyHint: "工具自帶使用說明書（封裝）",
+    originStory: "OOP 的根源在 Simula 67 (1967)——挪威設計的模擬語言，第一次有「class」的概念。Alan Kay 在 1970 年代發明 Smalltalk 把 OOP 系統化，他原本的設想是「物件之間互傳訊息」（不是函式呼叫）。1980-90 年代 C++、Java 把 OOP 推向主流，今天大部分商業軟體都是 OOP 風格。但 OOP 也有反思——Joe Armstrong（Erlang 作者）批評「你想要一根香蕉、結果拿到一隻拿著香蕉的猩猩跟整個叢林」（諷刺繼承層級太深）。Composition over inheritance 跟函數式程式設計就是對 OOP 過度繼承的反應。",
+    example: {
+      code: `class Account {
+  #balance = 0;          // private 餘額（內部細節）
+
+  deposit(amount) {       // 方法：存款
+    if (amount > 0) this.#balance += amount;
+  }
+
+  getBalance() {          // 方法：查餘額（不讓人直接改）
+    return this.#balance;
+  }
+}
+
+const a = new Account();  // 從 class 藍圖蓋出實例
+a.deposit(100);
+console.log(a.getBalance()); // → 100
+// a.#balance = 999;       // ❌ 外面摸不到 private`,
+      note: "`#balance` 是 private 欄位，外面摸不到——這就是封裝。要存款只能透過 deposit() 方法，方法裡能驗證金額是否合法。換成不用 OOP，餘額就是裸露的變數，任何地方都能 `account.balance = -999`。",
+    },
+    tradeoffs: [
+      { label: "✅ OOP 適合", text: "業務領域有清楚的「實體」（使用者、訂單、付款），且每個實體有自己的行為跟狀態" },
+      { label: "⚠️ 注意", text: "繼承層級超過 2-3 層通常會痛苦——父類動一行子類全部受影響；考慮用 composition 替代" },
+      { label: "❌ OOP 不適合", text: "純資料流的場景（如資料 pipeline、批次運算）；函數式風格更直接" },
+    ],
+    oneLiner: "OOP 是「資料 + 操作那資料的程式碼」綁在一起，讓外人不能繞過驗證直接亂動內部。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "「encapsulation（封裝）」在 OOP 裡的意思是？",
+        options: [
+          { id: "a", text: "把多個 class 包成一個 module", correct: false },
+          { id: "b", text: "把資料跟操作那資料的方法綁在一起，並隱藏內部細節", correct: true },
+          { id: "c", text: "用繼承重用程式碼", correct: false },
+        ],
+        explanation:
+          "封裝是 OOP 第一個價值——把「資料」（如餘額）跟「合法操作」（如存款、提款）綁在物件內，並把資料藏起來。外面只能透過方法操作，不能直接改。這帶來兩個好處：(1) 驗證在方法裡做（不能存負數），外面繞不過去；(2) 內部實作改了不影響外面（你把餘額從 number 改成 BigDecimal，外面還是用 deposit() 不用改）。option a 是 module；option c 是繼承。",
+        misconception: "封裝不是「打包」，是「把資料藏進物件裡，只能透過方法觸碰」。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "你要設計一個「使用者」實體，下面四個欄位 (name, password, lastLoginAt, isActive) 怎麼設計？",
+        options: [
+          { id: "a", text: "全部 public（OOP 沒這麼龜毛）", correct: false },
+          { id: "b", text: "password 一定 private；其他依需求決定，但通常 isActive 透過方法（如 deactivate()）操作", correct: true },
+          { id: "c", text: "全部 private，永遠不能直接讀", correct: false },
+        ],
+        explanation:
+          "password 一定要 private——任何能直接讀 password 的程式都是漏洞。name 通常 public（讀取多）。lastLoginAt 多半 readonly（外面讀但不該寫）。isActive 通常透過方法改，因為「停用」可能要連動觸發其他事（清 session、發通知）。OOP 不是「全 private」，是「該保護的保護、該開放的開放」。",
+        misconception: "封裝是「該藏什麼藏什麼」，不是「全藏」也不是「全露」。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "同事說：「OOP 就是用 class，凡事 class 化就是 OOP」。對嗎？",
+        options: [
+          { id: "a", text: "對，有 class 就是 OOP", correct: false },
+          { id: "b", text: "不對，OOP 的核心是 encapsulation/inheritance/polymorphism 三件事，光寫 class 不算", correct: true },
+          { id: "c", text: "對，class 是 OOP 唯一定義", correct: false },
+        ],
+        explanation:
+          "Class 是 OOP 的「載體」，但不是 OOP 本身。如果你寫了 class 但所有欄位都 public、沒有方法、只是當資料容器用，那就只是 struct 換個名字。Alan Kay 原本的 OOP 設想甚至更激進——「物件之間傳訊息」是核心，class 是次要的。Erlang/Smalltalk 風格的 OOP 跟 Java 風格差很大。判斷一段 code 是不是 OOP 看「行為跟資料是否綁在一起、內部細節是否隱藏」，不是看有沒有 `class` 關鍵字。",
+        misconception: "Class 是工具，OOP 是設計理念——可以用 class 寫非 OOP 的 code。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "MDN — Object-oriented programming",
+        url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Advanced_JavaScript_objects/Object-oriented_programming",
+        why: "MDN 的 OOP 入門，圖示清楚 + JS 角度的實作",
+      },
+      {
+        title: "Sandi Metz — Practical Object-Oriented Design (POODR)",
+        url: "https://sandimetz.com/poodr",
+        why: "Ruby 社群最有名的 OOP 設計書，講 OOP 該怎麼用、不該怎麼用",
+      },
+    ],
   },
   {
     slug: "embedding",
@@ -2439,7 +2823,75 @@ const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
     tag: "AI",
     title: "Embedding（向量表示）",
     hook: "怎麼讓電腦判斷「貓」跟「狗」比「貓」跟「微積分」更接近？",
+    body: `答案是把每個詞、每個句子、甚至每張圖**轉成一串數字**——通常是 1536 維或 768 維的向量。這個轉換過程叫 embedding，神奇之處在於：意思相近的東西，向量距離也近。「貓」可能是 [0.21, -0.05, 0.73, ...]，「狗」是 [0.19, -0.08, 0.71, ...]，兩者餘弦相似度很高；但「微積分」是 [0.92, 0.34, -0.41, ...]，跟「貓」差很遠。
+
+Embedding 的價值在於把「意思相近」這件事**從文字比對升級成數學運算**。傳統文字搜尋只能匹配「狗」這個字，找不到「犬類」、「汪星人」。Embedding 之後可以做語意搜尋——「我家的喵喵生病了」找得到「貓飼主應該注意的健康徵兆」這篇文章，即使兩篇沒有任何共同字。RAG、向量資料庫、推薦系統、語意搜尋的底層都是 embedding。`,
+    analogy: {
+      icon: "🗺",
+      title: "把每個詞放在地圖上的座標",
+      text: "想像一張很大的地圖（不是 2D，是 1536 維），每個詞都被擺在某個座標。「貓」「狗」「兔子」聚在「寵物」區、「微積分」「線性代數」聚在「數學」區、「悲傷」「難過」聚在「負面情緒」區。「我家的喵喵」這個句子也有一個座標，落在「寵物」區附近——這就是為什麼搜尋「我家的喵喵」會找到「貓的健康」相關文章，雖然字不同但座標近。",
+    },
     analogyHint: "把意義放進地圖座標",
+    originStory: "Embedding 的概念在 NLP 領域早就存在（如 1990 年代的 LSA），但真正引爆是 2013 年 Tomas Mikolov 在 Google 發表的 word2vec——首次大規模證明「word embedding 學到語意」（著名的 `king - man + woman ≈ queen`）。2018 年 BERT 把 embedding 從詞推到句子層級。今天的 LLM（GPT、Claude）內部每個 token 都是 embedding。OpenAI 的 text-embedding-3 系列、Cohere 的 embed v3 等 API 把 embedding 變成商品——你給文字、我回 1536 維向量，剩下的搜尋、相似度比較交給你。RAG 的興起讓 embedding 從研究走進每個 AI 應用的工具箱。",
+    tradeoffs: [
+      { label: "✅ Embedding 適合", text: "語意搜尋、推薦系統、RAG、文字分群、找相似圖片" },
+      { label: "⚠️ 注意", text: "embedding 是「黑箱對映」——同樣的字在不同 model 上向量完全不同，model 升級就要重新 embed 全部資料" },
+      { label: "❌ 不適合", text: "精確匹配（找 SKU、特定 ID）反而 SQL 更快；對「不在訓練分布裡」的詞效果差" },
+    ],
+    oneLiner: "Embedding 把意義變成座標，讓「相近」從字面比對升級成數學距離。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "「embedding」這個詞在 AI 裡的意思是？",
+        options: [
+          { id: "a", text: "把資料壓縮成更小的檔案", correct: false },
+          { id: "b", text: "把文字、圖片等內容轉成固定長度的向量，使語意相近的內容向量距離也近", correct: true },
+          { id: "c", text: "一種神經網路架構", correct: false },
+        ],
+        explanation:
+          "Embedding 是「映射到向量空間」的概念——把任何輸入（文字、圖片、聲音）轉成固定長度的數字陣列（如 1536 維），且這個映射有個關鍵性質：相似的輸入產生相似的向量。這跟「壓縮」不同——壓縮是把資料變小可逆還原；embedding 是抽取「意義」、不可逆。也不是一種網路架構——它是「網路的某層輸出」，可以從不同架構（word2vec、BERT、CLIP）取得。",
+        misconception: "Embedding 不壓縮資料、不還原資料——它把資料映射到「意義空間」。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "你要做一個「找相似商品」的功能，使用者搜尋「無線藍牙耳機」。下列哪個方案最適合？",
+        options: [
+          { id: "a", text: "用 SQL `LIKE '%無線藍牙耳機%'`", correct: false },
+          { id: "b", text: "把所有商品名字 + 描述 embed 成向量，用搜尋字的向量找最近的幾個", correct: true },
+          { id: "c", text: "用全文搜尋（full-text search），比 LIKE 快但概念一樣", correct: false },
+        ],
+        explanation:
+          "LIKE 跟 full-text search 都是「字面匹配」——找到「無線藍牙耳機」找不到「TWS 耳塞」、「無線耳塞式」、「bluetooth headphone」。Embedding + 向量搜尋能抓到語意相似——TWS、無線耳塞、bluetooth 都會落在「耳機類」附近。這是電商搜尋體驗的一大升級。但純精確匹配（找 SKU、找特定型號）embedding 反而不準，那種還是 SQL 強。混合架構是業界常態。",
+        misconception: "字面匹配跟語意匹配是不同問題——「找相似」不是「字一樣」。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "同事說：「我用了 OpenAI embedding，所以我的搜尋很準」。對嗎？",
+        options: [
+          { id: "a", text: "對，OpenAI 是最強的", correct: false },
+          { id: "b", text: "不一定，embedding 品質受文字長度、領域、語言、預處理等影響大", correct: true },
+          { id: "c", text: "對，只要有 embedding 就一定準", correct: false },
+        ],
+        explanation:
+          "Embedding 不是黑魔法——它的品質取決於：(1) 你 embed 的文字是不是訓練 model 的領域（醫學、法律、特殊行業可能要 fine-tune）、(2) 文字長度（embedding 通常對短句子準、長文章要切 chunk）、(3) 語言（多數 model 對英文最好、中日韓略遜）、(4) 預處理（清掉 HTML、保留專有名詞）。直接呼叫 API 不保證準確——常見的失敗模式是「embedding 看起來都很相近」（向量空間塌縮）。要看 retrieval 在實際資料上的 hit rate 才知道行不行。",
+        misconception: "Embedding 不是即插即用，要看領域跟資料品質。",
+      },
+    ],
+    furtherReading: [
+      {
+        title: "OpenAI — Embeddings Guide",
+        url: "https://platform.openai.com/docs/guides/embeddings",
+        why: "官方文件含 use case 範例 + 實作 cookbook",
+      },
+      {
+        title: "Word2Vec Tutorial — The Skip-Gram Model",
+        url: "http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/",
+        why: "從 word2vec 講起，看完真正知道 embedding 怎麼從訓練學到語意",
+      },
+    ],
   },
 ];
 
