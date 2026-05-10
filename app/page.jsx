@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { concepts } from "@/data/concepts";
 import { getCurrentDay } from "@/lib/day-progress";
 
@@ -12,6 +12,12 @@ export default function Home() {
     setCurrentDay(getCurrentDay());
   }, []);
 
+  // 按 releaseDay 排序顯示，跟 concepts.js 的 array 順序解耦
+  const ordered = useMemo(
+    () => concepts.slice().sort((a, b) => a.releaseDay - b.releaseDay),
+    [],
+  );
+
   return (
     <div style={styles.root}>
       <p style={styles.tagline} className="tb-tagline">
@@ -19,7 +25,7 @@ export default function Home() {
       </p>
 
       <ul style={styles.list}>
-        {concepts.map((c) => {
+        {ordered.map((c) => {
           const isReady = !!c.questions;
           const beforeFirstVisit = currentDay == null;
           const isToday = !beforeFirstVisit && c.releaseDay === currentDay;
