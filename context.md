@@ -122,35 +122,43 @@
 
 ---
 
-## 5. 已完成的概念（Day 1-25）
+## 5. 已完成的概念（Day 1-31）
 
-| Day | Slug | 標題 | Tag |
-|---|---|---|---|
-| 1 | `jwt-vs-session` | JWT vs Session | API 設計 |
-| 2 | `rest-vs-graphql` | REST vs GraphQL | API 設計 |
-| 3 | `cdn` | CDN 是什麼 | 效能 |
-| 4 | `rag` | RAG（檢索增強生成） | AI |
-| 5 | `tcp-vs-udp` | TCP vs UDP | 網路 |
-| 6 | `docker` | Docker 的核心價值 | 工程 |
-| 7 | `database-index` | 資料庫 Index | 資料庫 |
-| 8 | `oauth2` | OAuth 2.0 | 安全 |
-| 9 | `webhook-vs-polling` | Webhook vs Polling | API 設計 |
-| 10 | `vector-database` | 向量資料庫 | AI |
-| 11 | `kubernetes` | Kubernetes 的核心價值 | 工程 |
-| 12 | `grpc-vs-rest` | gRPC vs REST | API 設計 |
-| 13 | `eventual-consistency` | Eventual Consistency | 分散式系統 |
-| 14 | `cache-strategies` | Cache 策略 | 效能 |
-| 15 | `rate-limiting` | Rate Limiting | 安全 |
-| 16 | `closure` | Closure（閉包） | 程式設計 |
-| 17 | `mutability-vs-immutability` | Mutability vs Immutability | 程式設計 |
-| 18 | `race-condition` | Race Condition | 並發 |
-| 19 | `big-o` | Big-O 複雜度 | 演算法 |
-| 20 | `composition-vs-inheritance` | Composition vs Inheritance | 程式設計 |
-| 21 | `static-vs-dynamic-typing` | Static vs Dynamic Typing | 型別系統 |
-| 22 | `mock-stub-spy` | Mock / Stub / Spy | 測試 |
-| 23 | `garbage-collection` | Garbage Collection | 工程 |
-| 24 | `idempotency` | Idempotency | API 設計 |
-| 25 | `hashing-vs-encryption` | Hashing vs Encryption | 安全 |
+順序由淺入深：L1 (1-8) → L2 (9-28) → L3 (29-31)。Prereq 一律在前，鍊式依賴成立。
+
+| Day | Slug | Level | 標題 | Tag |
+|---|---|---|---|---|
+| 1 | `http-basics` | L1 | HTTP 基礎 | 網路 |
+| 2 | `network-layers` | L1 | Network Layers | 網路 |
+| 3 | `data-structures` | L1 | 資料結構基礎 | 演算法 |
+| 4 | `big-o` | L1 | Big-O 複雜度 | 演算法 |
+| 5 | `memory-model` | L1 | 記憶體模型（Stack vs Heap） | 程式設計 |
+| 6 | `oop-basics` | L1 | OOP 基礎 | 程式設計 |
+| 7 | `closure` | L1 | Closure（閉包） | 程式設計 |
+| 8 | `embedding` | L1 | Embedding（向量表示） | AI |
+| 9 | `rest-vs-graphql` | L2 | REST vs GraphQL | API 設計 |
+| 10 | `webhook-vs-polling` | L2 | Webhook vs Polling | API 設計 |
+| 11 | `jwt-vs-session` | L2 | JWT vs Session | API 設計 |
+| 12 | `oauth2` | L2 | OAuth 2.0 | 安全 |
+| 13 | `rate-limiting` | L2 | Rate Limiting | 安全 |
+| 14 | `cdn` | L2 | CDN 是什麼 | 效能 |
+| 15 | `cache-strategies` | L2 | Cache 策略 | 效能 |
+| 16 | `tcp-vs-udp` | L2 | TCP vs UDP | 網路 |
+| 17 | `grpc-vs-rest` | L2 | gRPC vs REST | API 設計 |
+| 18 | `docker` | L2 | Docker 的核心價值 | 工程 |
+| 19 | `kubernetes` | L2 | Kubernetes 的核心價值 | 工程 |
+| 20 | `database-index` | L2 | 資料庫 Index | 資料庫 |
+| 21 | `hashing-vs-encryption` | L2 | Hashing vs Encryption | 安全 |
+| 22 | `vector-database` | L2 | 向量資料庫 | AI |
+| 23 | `rag` | L2 | RAG（檢索增強生成） | AI |
+| 24 | `mutability-vs-immutability` | L2 | Mutability vs Immutability | 程式設計 |
+| 25 | `composition-vs-inheritance` | L2 | Composition vs Inheritance | 程式設計 |
+| 26 | `static-vs-dynamic-typing` | L2 | Static vs Dynamic Typing | 型別系統 |
+| 27 | `garbage-collection` | L2 | Garbage Collection | 工程 |
+| 28 | `mock-stub-spy` | L2 | Mock / Stub / Spy | 測試 |
+| 29 | `race-condition` | L3 | Race Condition | 並發 |
+| 30 | `idempotency` | L3 | Idempotency | API 設計 |
+| 31 | `eventual-consistency` | L3 | Eventual Consistency | 分散式系統 |
 
 ---
 
