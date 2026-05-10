@@ -3,7 +3,7 @@
 export const concepts = [
   {
     slug: "jwt-vs-session",
-    releaseDay: 1,
+    releaseDay: 11,
     level: 2,
     prerequisites: ["http-basics"],
     assumedKnowledge: ["Cookie / session 概念"],
@@ -91,7 +91,7 @@ JSON.parse(atob(payload));
   },
   {
     slug: "rest-vs-graphql",
-    releaseDay: 2,
+    releaseDay: 9,
     level: 2,
     prerequisites: ["http-basics"],
     assumedKnowledge: [],
@@ -188,7 +188,7 @@ query {
   },
   {
     slug: "cdn",
-    releaseDay: 3,
+    releaseDay: 14,
     level: 2,
     prerequisites: ["http-basics"],
     assumedKnowledge: ["Cache 概念"],
@@ -269,7 +269,7 @@ CDN（Content Delivery Network）的解法：把靜態資源（圖、CSS、JS、
   },
   {
     slug: "rag",
-    releaseDay: 4,
+    releaseDay: 23,
     level: 2,
     prerequisites: ["vector-database"],
     assumedKnowledge: ["LLM 概念"],
@@ -362,7 +362,7 @@ def rag(question):
   },
   {
     slug: "tcp-vs-udp",
-    releaseDay: 5,
+    releaseDay: 16,
     level: 2,
     prerequisites: ["network-layers"],
     assumedKnowledge: [],
@@ -442,7 +442,7 @@ UDP 像「明信片」——丟出去就算，不確認、不重傳、不保證�
   },
   {
     slug: "docker",
-    releaseDay: 6,
+    releaseDay: 18,
     level: 2,
     prerequisites: ["memory-model"],
     assumedKnowledge: ["OS process"],
@@ -532,7 +532,7 @@ CMD ["node", "server.js"]`,
   },
   {
     slug: "database-index",
-    releaseDay: 7,
+    releaseDay: 20,
     level: 2,
     prerequisites: ["data-structures"],
     assumedKnowledge: ["SQL"],
@@ -623,7 +623,7 @@ SELECT * FROM users WHERE email = 'alice@example.com';
   },
   {
     slug: "oauth2",
-    releaseDay: 8,
+    releaseDay: 12,
     level: 2,
     prerequisites: ["http-basics"],
     assumedKnowledge: ["Token / web auth"],
@@ -712,7 +712,7 @@ https://accounts.google.com/o/oauth2/v2/auth?
   },
   {
     slug: "webhook-vs-polling",
-    releaseDay: 9,
+    releaseDay: 10,
     level: 2,
     prerequisites: ["http-basics"],
     assumedKnowledge: [],
@@ -810,7 +810,7 @@ app.post("/webhook/stripe", (req, res) => {
   },
   {
     slug: "vector-database",
-    releaseDay: 10,
+    releaseDay: 22,
     level: 2,
     prerequisites: ["embedding"],
     assumedKnowledge: ["相似度搜尋"],
@@ -906,7 +906,7 @@ results = vector_db.query(vector=q, top_k=5)
   },
   {
     slug: "kubernetes",
-    releaseDay: 11,
+    releaseDay: 19,
     level: 2,
     prerequisites: ["docker"],
     assumedKnowledge: [],
@@ -1005,7 +1005,7 @@ spec:
   },
   {
     slug: "grpc-vs-rest",
-    releaseDay: 12,
+    releaseDay: 17,
     level: 2,
     prerequisites: ["rest-vs-graphql"],
     assumedKnowledge: ["RPC 概念", "Protobuf"],
@@ -1101,7 +1101,7 @@ message User {
   },
   {
     slug: "eventual-consistency",
-    releaseDay: 13,
+    releaseDay: 31,
     level: 3,
     prerequisites: [],
     assumedKnowledge: ["分散式系統概念", "資料複製 / replication"],
@@ -1180,7 +1180,7 @@ message User {
   },
   {
     slug: "cache-strategies",
-    releaseDay: 14,
+    releaseDay: 15,
     level: 2,
     prerequisites: ["cdn"],
     assumedKnowledge: [],
@@ -1277,7 +1277,7 @@ async function getUser(id) {
   },
   {
     slug: "rate-limiting",
-    releaseDay: 15,
+    releaseDay: 13,
     level: 2,
     prerequisites: ["http-basics"],
     assumedKnowledge: [],
@@ -1372,7 +1372,7 @@ async function consume(userId) {
   },
   {
     slug: "closure",
-    releaseDay: 16,
+    releaseDay: 7,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
@@ -1478,7 +1478,7 @@ b(); // 1  ← b 有自己的 n，不共享`,
   },
   {
     slug: "mutability-vs-immutability",
-    releaseDay: 17,
+    releaseDay: 24,
     level: 2,
     prerequisites: ["memory-model"],
     assumedKnowledge: ["Reference vs value"],
@@ -1576,7 +1576,7 @@ setState(produce(state, draft => {
   },
   {
     slug: "race-condition",
-    releaseDay: 18,
+    releaseDay: 29,
     level: 3,
     prerequisites: ["mutability-vs-immutability"],
     assumedKnowledge: ["並發 / 多執行緒"],
@@ -1675,7 +1675,7 @@ useEffect(() => {
   },
   {
     slug: "big-o",
-    releaseDay: 19,
+    releaseDay: 4,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
@@ -1779,7 +1779,7 @@ function hasDuplicateFast(arr) {
   },
   {
     slug: "composition-vs-inheritance",
-    releaseDay: 20,
+    releaseDay: 25,
     level: 2,
     prerequisites: ["oop-basics"],
     assumedKnowledge: ["Class / instance"],
@@ -1877,7 +1877,7 @@ const drone = Object.assign({}, canFly, canSwim); // 隨意組合`,
   },
   {
     slug: "static-vs-dynamic-typing",
-    releaseDay: 21,
+    releaseDay: 26,
     level: 2,
     prerequisites: [],
     assumedKnowledge: ["變數 / 型別概念"],
@@ -1974,7 +1974,7 @@ getUser(undefined); // ❌ IDE 立刻紅線：Argument of type 'undefined' is no
   },
   {
     slug: "mock-stub-spy",
-    releaseDay: 22,
+    releaseDay: 28,
     level: 2,
     prerequisites: [],
     assumedKnowledge: ["單元測試概念"],
@@ -2073,7 +2073,7 @@ spy.mockRestore();`,
   },
   {
     slug: "garbage-collection",
-    releaseDay: 23,
+    releaseDay: 27,
     level: 2,
     prerequisites: ["memory-model"],
     assumedKnowledge: ["Pointer / 指標"],
@@ -2171,7 +2171,7 @@ function addWidget(el) {
   },
   {
     slug: "idempotency",
-    releaseDay: 24,
+    releaseDay: 30,
     level: 3,
     prerequisites: ["http-basics"],
     assumedKnowledge: ["重試 / 失敗處理場景"],
@@ -2271,7 +2271,7 @@ if (existing) return existing.result; // 重複請求，直接回舊結果
   },
   {
     slug: "hashing-vs-encryption",
-    releaseDay: 25,
+    releaseDay: 21,
     level: 2,
     prerequisites: [],
     assumedKnowledge: ["Bit operation", "Key / 金鑰概念"],
@@ -2377,7 +2377,7 @@ const ok = await bcrypt.compare(inputPassword, hashed); // true / false`,
 
   {
     slug: "http-basics",
-    releaseDay: 26,
+    releaseDay: 1,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
@@ -2469,7 +2469,7 @@ Cache-Control: max-age=300
   },
   {
     slug: "network-layers",
-    releaseDay: 27,
+    releaseDay: 2,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
@@ -2548,7 +2548,7 @@ Cache-Control: max-age=300
   },
   {
     slug: "data-structures",
-    releaseDay: 28,
+    releaseDay: 3,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
@@ -2627,7 +2627,7 @@ Tree（特別是平衡樹如 B-tree、紅黑樹）的查找比 array 慢（O(log
   },
   {
     slug: "memory-model",
-    releaseDay: 29,
+    releaseDay: 5,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
@@ -2718,7 +2718,7 @@ console.log(arr1);  // → [1, 2, 3, 4]（arr1 也改了！）`,
   },
   {
     slug: "oop-basics",
-    releaseDay: 30,
+    releaseDay: 6,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
@@ -2816,7 +2816,7 @@ console.log(a.getBalance()); // → 100
   },
   {
     slug: "embedding",
-    releaseDay: 31,
+    releaseDay: 8,
     level: 1,
     prerequisites: [],
     assumedKnowledge: [],
