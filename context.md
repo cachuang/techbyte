@@ -10,7 +10,7 @@
 
 - **目標使用者**: 已在科技業但想補知識的人（非新手、非學生）
 - **內容定調**: 「你聽過但說不清楚」的概念，有深度、有取捨討論
-- **核心假設**: 互動驗證（答題 + 即時解說）真的比純閱讀更幫助記憶
+- **核心假設**: 每天 5-10 分鐘的小單位學習，能讓工程師持續地補上「聽過但說不清楚」的概念。「持續性」是可觀察訊號（Day 7 retention），不需要證明任何認知科學。
 - **MVP 不需要多功能**, 只要讓這個實驗能跑、收到數據
 
 ---
@@ -122,9 +122,9 @@
 
 ---
 
-## 5. 已完成的概念（Day 1-31）
+## 5. 已完成的概念（Day 1-32）
 
-順序由淺入深：L1 (1-8) → L2 (9-28) → L3 (29-31)。Prereq 一律在前，鍊式依賴成立。
+順序由淺入深：L1 (1-8) → L2 (9-29) → L3 (30-32)。Prereq 一律在前，鍊式依賴成立。
 
 | Day | Slug | Level | 標題 | Tag |
 |---|---|---|---|---|
@@ -138,27 +138,28 @@
 | 8 | `embedding` | L1 | Embedding（向量表示） | AI |
 | 9 | `rest-vs-graphql` | L2 | REST vs GraphQL | API 設計 |
 | 10 | `webhook-vs-polling` | L2 | Webhook vs Polling | API 設計 |
-| 11 | `jwt-vs-session` | L2 | JWT vs Session | API 設計 |
-| 12 | `oauth2` | L2 | OAuth 2.0 | 安全 |
-| 13 | `rate-limiting` | L2 | Rate Limiting | 安全 |
-| 14 | `cdn` | L2 | CDN 是什麼 | 效能 |
-| 15 | `cache-strategies` | L2 | Cache 策略 | 效能 |
-| 16 | `tcp-vs-udp` | L2 | TCP vs UDP | 網路 |
-| 17 | `grpc-vs-rest` | L2 | gRPC vs REST | API 設計 |
-| 18 | `docker` | L2 | Docker 的核心價值 | 工程 |
-| 19 | `kubernetes` | L2 | Kubernetes 的核心價值 | 工程 |
-| 20 | `database-index` | L2 | 資料庫 Index | 資料庫 |
-| 21 | `hashing-vs-encryption` | L2 | Hashing vs Encryption | 安全 |
-| 22 | `vector-database` | L2 | 向量資料庫 | AI |
-| 23 | `rag` | L2 | RAG（檢索增強生成） | AI |
-| 24 | `mutability-vs-immutability` | L2 | Mutability vs Immutability | 程式設計 |
-| 25 | `composition-vs-inheritance` | L2 | Composition vs Inheritance | 程式設計 |
-| 26 | `static-vs-dynamic-typing` | L2 | Static vs Dynamic Typing | 型別系統 |
-| 27 | `garbage-collection` | L2 | Garbage Collection | 工程 |
-| 28 | `mock-stub-spy` | L2 | Mock / Stub / Spy | 測試 |
-| 29 | `race-condition` | L3 | Race Condition | 並發 |
-| 30 | `idempotency` | L3 | Idempotency | API 設計 |
-| 31 | `eventual-consistency` | L3 | Eventual Consistency | 分散式系統 |
+| 11 | `websocket` | L2 | WebSocket | API 設計 |
+| 12 | `jwt-vs-session` | L2 | JWT vs Session | API 設計 |
+| 13 | `oauth2` | L2 | OAuth 2.0 | 安全 |
+| 14 | `rate-limiting` | L2 | Rate Limiting | 安全 |
+| 15 | `cdn` | L2 | CDN 是什麼 | 效能 |
+| 16 | `cache-strategies` | L2 | Cache 策略 | 效能 |
+| 17 | `tcp-vs-udp` | L2 | TCP vs UDP | 網路 |
+| 18 | `grpc-vs-rest` | L2 | gRPC vs REST | API 設計 |
+| 19 | `docker` | L2 | Docker 的核心價值 | 工程 |
+| 20 | `kubernetes` | L2 | Kubernetes 的核心價值 | 工程 |
+| 21 | `database-index` | L2 | 資料庫 Index | 資料庫 |
+| 22 | `hashing-vs-encryption` | L2 | Hashing vs Encryption | 安全 |
+| 23 | `vector-database` | L2 | 向量資料庫 | AI |
+| 24 | `rag` | L2 | RAG（檢索增強生成） | AI |
+| 25 | `mutability-vs-immutability` | L2 | Mutability vs Immutability | 程式設計 |
+| 26 | `composition-vs-inheritance` | L2 | Composition vs Inheritance | 程式設計 |
+| 27 | `static-vs-dynamic-typing` | L2 | Static vs Dynamic Typing | 型別系統 |
+| 28 | `garbage-collection` | L2 | Garbage Collection | 工程 |
+| 29 | `mock-stub-spy` | L2 | Mock / Stub / Spy | 測試 |
+| 30 | `race-condition` | L3 | Race Condition | 並發 |
+| 31 | `idempotency` | L3 | Idempotency | API 設計 |
+| 32 | `eventual-consistency` | L3 | Eventual Consistency | 分散式系統 |
 
 ---
 
