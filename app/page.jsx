@@ -4,19 +4,62 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { concepts } from "@/data/concepts";
 import { getCurrentDay } from "@/lib/day-progress";
+import {
+  getTracks,
+  setTracks,
+  matchesTracks,
+  TRACK_LABELS,
+} from "@/lib/track-prefs";
+import TrackSelection from "@/components/TrackSelection";
 
 export default function Home() {
   const [currentDay, setCurrentDay] = useState(null);
+  const [userTracks, setUserTracks] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [editingTracks, setEditingTracks] = useState(false);
 
   useEffect(() => {
     setCurrentDay(getCurrentDay());
+    setUserTracks(getTracks());
+    setMounted(true);
   }, []);
 
-  // 按 releaseDay 排序顯示，跟 concepts.js 的 array 順序解耦
   const ordered = useMemo(
     () => concepts.slice().sort((a, b) => a.releaseDay - b.releaseDay),
     [],
   );
+
+  const filtered = useMemo(
+    () => ordered.filter((c) => matchesTracks(c.tracks, userTracks)),
+    [ordered, userTracks],
+  );
+
+  if (!mounted) return <div style={styles.root} />;
+
+  if (!userTracks || editingTracks) {
+    return (
+      <TrackSelection
+        initial={userTracks || []}
+        onConfirm={(arr) => {
+          setTracks(arr);
+          setUserTracks(arr);
+          setEditingTracks(false);
+        }}
+        onCancel={
+          editingTracks
+            ? () => setEditingTracks(false)
+            : undefined
+        }
+        title={editingTracks ? "調整你的方向" : "你主要做哪些方向？"}
+        confirmLabel={editingTracks ? "儲存" : "開始學習"}
+      />
+    );
+  }
+
+  const tracksLabel = userTracks
+    .map((t) => TRACK_LABELS[t]?.zh)
+    .filter(Boolean)
+    .join("、");
 
   return (
     <div style={styles.root}>
@@ -24,8 +67,20 @@ export default function Home() {
         A byte a day, keeps the layoff away
       </p>
 
+      <div style={styles.tracksRow}>
+        <span style={styles.tracksLabel}>你的方向</span>
+        <span style={styles.tracksValue}>{tracksLabel}</span>
+        <button
+          type="button"
+          onClick={() => setEditingTracks(true)}
+          style={styles.tracksEditBtn}
+        >
+          調整
+        </button>
+      </div>
+
       <ul style={styles.list}>
-        {ordered.map((c) => {
+        {filtered.map((c) => {
           const isReady = !!c.questions;
           const beforeFirstVisit = currentDay == null;
           const isToday = !beforeFirstVisit && c.releaseDay === currentDay;
@@ -112,8 +167,37 @@ const styles = {
     fontSize: 13,
     color: "#7a766c",
     fontStyle: "italic",
-    padding: "28px 28px 16px",
+    padding: "28px 28px 8px",
     letterSpacing: 0.3,
+  },
+  tracksRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "0 28px 16px",
+    fontSize: 12,
+  },
+  tracksLabel: {
+    fontFamily: "'Courier New', monospace",
+    color: "#6b6960",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    fontSize: 10,
+  },
+  tracksValue: {
+    color: "#9a968a",
+    fontSize: 12,
+  },
+  tracksEditBtn: {
+    marginLeft: "auto",
+    padding: "4px 10px",
+    background: "transparent",
+    border: "1px solid #2a2a30",
+    borderRadius: 6,
+    color: "#9a968a",
+    fontFamily: "inherit",
+    fontSize: 11,
+    cursor: "pointer",
   },
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
   item: { borderBottom: "1px solid #1c1c20" },
