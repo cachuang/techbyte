@@ -11,7 +11,7 @@ const STAGES = { READ: "read", QUIZ: "quiz", RESULT: "result" };
 const UNSURE_ID = "unsure";
 
 const LEVEL_COLOR = { 1: "#7dd3fc", 2: "#fbbf24", 3: "#f472b6" };
-const LEVEL_TITLE = { 1: "基礎", 2: "取捨", 3: "細節" };
+const LEVEL_TITLE = { 1: "基礎概念", 2: "場景取捨", 3: "進階細節" };
 
 export default function TechByte({ concept }) {
   const { user } = useAuth();
@@ -198,7 +198,7 @@ export default function TechByte({ concept }) {
                       borderColor: LEVEL_COLOR[level] + "55",
                     }}
                   >
-                    L{level} {LEVEL_TITLE[level]}
+                    {LEVEL_TITLE[level]}
                   </span>
                 )}
                 {prereqs.length > 0 && (
