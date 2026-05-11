@@ -10,6 +10,11 @@ import {
   matchesTracks,
   TRACK_LABELS,
 } from "@/lib/track-prefs";
+import {
+  getRecapTarget,
+  isRecapDone,
+  RECAP_DELAY,
+} from "@/lib/recap-prefs";
 import TrackSelection from "@/components/TrackSelection";
 
 export default function Home() {
@@ -33,6 +38,16 @@ export default function Home() {
     () => ordered.filter((c) => matchesTracks(c.tracks, userTracks)),
     [ordered, userTracks],
   );
+
+  const recapConcept = useMemo(() => {
+    if (!mounted || currentDay == null) return null;
+    const byDay = new Map(ordered.map((c) => [c.releaseDay, c]));
+    const target = getRecapTarget(currentDay, byDay);
+    if (!target) return null;
+    if (!matchesTracks(target.tracks, userTracks)) return null;
+    if (isRecapDone(target.slug)) return null;
+    return target;
+  }, [mounted, currentDay, ordered, userTracks]);
 
   if (!mounted) return <div style={styles.root} />;
 
@@ -78,6 +93,28 @@ export default function Home() {
           調整
         </button>
       </div>
+
+      {recapConcept ? (
+        <Link
+          href={`/recap/${recapConcept.slug}`}
+          style={styles.recapLink}
+        >
+          <div style={styles.recapCard}>
+            <div style={styles.recapHead}>
+              <span style={styles.recapBadge}>
+                ↺ {RECAP_DELAY} 天前回想
+              </span>
+              <span style={styles.recapDayChip}>
+                Day {String(recapConcept.releaseDay).padStart(2, "0")}
+              </span>
+            </div>
+            <div style={styles.recapBody}>
+              <span style={styles.recapTitle}>{recapConcept.title}</span>
+              <span style={styles.recapArrow}>回想 →</span>
+            </div>
+          </div>
+        </Link>
+      ) : null}
 
       <ul style={styles.list}>
         {filtered.map((c) => {
@@ -198,6 +235,61 @@ const styles = {
     fontFamily: "inherit",
     fontSize: 11,
     cursor: "pointer",
+  },
+  recapLink: {
+    display: "block",
+    textDecoration: "none",
+    color: "inherit",
+    margin: "0 28px 18px",
+  },
+  recapCard: {
+    background:
+      "linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(96, 165, 250, 0.02) 100%)",
+    border: "1px solid rgba(96, 165, 250, 0.25)",
+    borderRadius: 12,
+    padding: "14px 16px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  recapHead: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  recapBadge: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10.5,
+    color: "#60a5fa",
+    letterSpacing: 0.8,
+  },
+  recapDayChip: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10,
+    color: "#6b6960",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  recapBody: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  recapTitle: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#dcd8cc",
+    lineHeight: 1.4,
+    flex: 1,
+    wordBreak: "break-word",
+  },
+  recapArrow: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#60a5fa",
+    letterSpacing: 0.5,
+    flexShrink: 0,
   },
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
   item: { borderBottom: "1px solid #1c1c20" },

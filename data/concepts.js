@@ -1783,6 +1783,18 @@ function hasDuplicateFast(arr) {
         misconception: "Big-O 只告訴你「n 很大時的趨勢」，不告訴你「n = 100 時哪個快」。",
       },
     ],
+    recapQuestion: {
+      type: "概念辨識",
+      question: "一段 code 先 sort（O(n log n)）再 binary search（O(log n)）。整段的 Big-O 是？",
+      options: [
+        { id: "a", text: "O(log n) — 取最小的", correct: false },
+        { id: "b", text: "O(n log n) — 多步驟「依序」取最大那個", correct: true },
+        { id: "c", text: "O(n log n × log n) — 兩個複雜度相乘", correct: false },
+      ],
+      explanation:
+        "多步驟「依序」執行時，Big-O 取主導項（最慢那個）。sort 是 O(n log n)、search 是 O(log n)，n 一大 sort 遠遠主導，加總時間 ≈ sort 時間，所以整段是 O(n log n)。「相乘」適用於「巢狀」（一個操作放在 loop 裡反覆做），不是「依序」。算法：sequential 取 max、nested 取 product、常數丟掉。",
+      misconception: "多步驟的 Big-O 是 max 不是 sum；nested 才是 product。",
+    },
     furtherReading: [
       {
         title: "Big-O Cheat Sheet",
@@ -2480,6 +2492,18 @@ Cache-Control: max-age=300
         misconception: "200 是「協定成功」，不是「我做的事成功」。",
       },
     ],
+    recapQuestion: {
+      type: "概念辨識",
+      question: "HTTP stateless 的設計，帶來最大的工程好處是？",
+      options: [
+        { id: "a", text: "省記憶體，伺服器不用存使用者資料", correct: false },
+        { id: "b", text: "任何一台伺服器都能處理任何一個 request，水平擴展更容易", correct: true },
+        { id: "c", text: "request 加密強度更高", correct: false },
+      ],
+      explanation:
+        "Stateless 不是省資源（cookie/session 還是要存在某處），也跟加密無關。它真正的好處是「無記憶」── load balancer 可以把每個 request 隨機丟給任何一台 server，不用 sticky session；一台掛了其他直接接手。這是雲端 horizontal scaling 的基石。Stateful protocol 要嘛 sticky、要嘛把 state replicate 到所有節點，工程複雜度高一個量級。",
+      misconception: "Stateless 的價值不是「省」，是「可分散」。",
+    },
     furtherReading: [
       {
         title: "MDN — HTTP overview",
@@ -2560,6 +2584,18 @@ Cache-Control: max-age=300
         misconception: "「標準」不總是事實上的標準——網際網路的事實標準是 RFC，不是 ISO。",
       },
     ],
+    recapQuestion: {
+      type: "情境判斷",
+      question: "公司網路全面從 IPv4 換成 IPv6，網頁前端的 JavaScript 需要改嗎？",
+      options: [
+        { id: "a", text: "需要，IP 改了所有網路 call 都會壞", correct: false },
+        { id: "b", text: "不需要，分層讓上層協定（HTTP）不感知底層位址格式", correct: true },
+        { id: "c", text: "需要，因為 IPv6 的封包格式不一樣", correct: false },
+      ],
+      explanation:
+        "這正是分層設計的核心價值──抽換性。HTTP 跑在 TCP 上、TCP 跑在 IP 上。IP 從 v4 換成 v6，TCP 跟 HTTP 都不用知道：它們收到的還是「可靠送字串」跟「拿網頁」這兩個服務。底層怎麼變上層 code 不感知。如果分層做得不好（層之間 leak），這種升級就要全棧改 code——但 internet 跑了 30 年沒這個問題，正是分層發揮作用。",
+      misconception: "分層的價值在「未來改一層不會炸到另一層」。",
+    },
     furtherReading: [
       {
         title: "Cloudflare Learning — What is the OSI model?",
@@ -2640,6 +2676,18 @@ Tree（特別是平衡樹如 B-tree、紅黑樹）的查找比 array 慢（O(log
         misconception: "Hash 的 O(1) 是針對「按 key 找值」這一種操作，不是萬用銀彈。",
       },
     ],
+    recapQuestion: {
+      type: "情境判斷",
+      question: "你要實作「最近瀏覽過的 10 個商品」（按時間倒序、不可重複），最適合什麼結構？",
+      options: [
+        { id: "a", text: "Hash set（O(1) 去重）", correct: false },
+        { id: "b", text: "Array（簡單，反正才 10 個）", correct: false },
+        { id: "c", text: "保留插入順序的 set／map（同時去重 + 順序）", correct: true },
+      ],
+      explanation:
+        "這題有兩個約束：(1) 去重、(2) 保留順序。純 hash 沒順序、純 array 沒去重。JS 的 Map 本身保留插入順序、Java 的 LinkedHashSet 也是這類「兩個 cover 一次」的結構。看到「同時要 X 跟 Y」的需求，要先問：有沒有單一資料結構同時做到？不要硬把兩個結構黏起來維護一致性。",
+      misconception: "選資料結構時要列出「所有」約束再挑，不是看主要約束就拍板。",
+    },
     furtherReading: [
       {
         title: "VisuAlgo",
@@ -2732,6 +2780,18 @@ console.log(arr1);  // → [1, 2, 3, 4]（arr1 也改了！）`,
         misconception: "Heap 的清理由「reachability」決定，不是「scope」決定。",
       },
     ],
+    recapQuestion: {
+      type: "錯誤假設",
+      question: "同事說：「我用 const 宣告陣列就不會被改了，不用做 immutable」。對嗎？",
+      options: [
+        { id: "a", text: "對，const 鎖住的就是內容", correct: false },
+        { id: "b", text: "不對，const 只鎖 stack 上的 reference，heap 上的內容仍可改", correct: true },
+        { id: "c", text: "對，但只在 strict mode 才生效", correct: false },
+      ],
+      explanation:
+        "const 跟 immutability 是兩件事。const 鎖住的是 stack 上「這個變數」指向的 reference 不能換——你不能把 const arr 重新指到另一個陣列。但 reference 指向的 heap 上的陣列「內容」完全可以改：arr.push(...)、arr[0] = ... 都合法。要真正 immutable 要靠 Object.freeze、Immer 或語言層的 immutable type（Rust）。誤以為 const = immutable 是 JS bug 常見來源。",
+      misconception: "const 鎖的是 reference 本身，不是 reference 指向的內容。",
+    },
     furtherReading: [
       {
         title: "MDN — Memory Management",
