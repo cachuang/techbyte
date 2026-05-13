@@ -4,19 +4,79 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { concepts } from "@/data/concepts";
 import { getCurrentDay } from "@/lib/day-progress";
+import {
+  getTracks,
+  setTracks,
+  matchesTracks,
+  TRACK_LABELS,
+} from "@/lib/track-prefs";
+import {
+  getCurrentBatch,
+  isBatchDone,
+  getBatchConcepts,
+  RECAP_BATCH_SIZE,
+} from "@/lib/recap-prefs";
+import TrackSelection from "@/components/TrackSelection";
 
 export default function Home() {
   const [currentDay, setCurrentDay] = useState(null);
+  const [userTracks, setUserTracks] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [editingTracks, setEditingTracks] = useState(false);
 
   useEffect(() => {
     setCurrentDay(getCurrentDay());
+    setUserTracks(getTracks());
+    setMounted(true);
   }, []);
 
-  // 按 releaseDay 排序顯示，跟 concepts.js 的 array 順序解耦
   const ordered = useMemo(
     () => concepts.slice().sort((a, b) => a.releaseDay - b.releaseDay),
     [],
   );
+
+  const filtered = useMemo(
+    () => ordered.filter((c) => matchesTracks(c.tracks, userTracks)),
+    [ordered, userTracks],
+  );
+
+  const recapBatch = useMemo(() => {
+    if (!mounted || currentDay == null) return null;
+    const batch = getCurrentBatch(currentDay);
+    if (!batch || isBatchDone(batch.key)) return null;
+    const inBatch = getBatchConcepts(batch, ordered).filter((c) =>
+      matchesTracks(c.tracks, userTracks),
+    );
+    if (inBatch.length === 0) return null;
+    return { ...batch, concepts: inBatch };
+  }, [mounted, currentDay, ordered, userTracks]);
+
+  if (!mounted) return <div style={styles.root} />;
+
+  if (!userTracks || editingTracks) {
+    return (
+      <TrackSelection
+        initial={userTracks || []}
+        onConfirm={(arr) => {
+          setTracks(arr);
+          setUserTracks(arr);
+          setEditingTracks(false);
+        }}
+        onCancel={
+          editingTracks
+            ? () => setEditingTracks(false)
+            : undefined
+        }
+        title={editingTracks ? "調整你的方向" : "你主要做哪些方向？"}
+        confirmLabel={editingTracks ? "儲存" : "開始學習"}
+      />
+    );
+  }
+
+  const tracksLabel = userTracks
+    .map((t) => TRACK_LABELS[t]?.zh)
+    .filter(Boolean)
+    .join("、");
 
   return (
     <div style={styles.root}>
@@ -24,8 +84,44 @@ export default function Home() {
         A byte a day, keeps the layoff away
       </p>
 
+      <div style={styles.tracksRow}>
+        <span style={styles.tracksLabel}>你的方向</span>
+        <span style={styles.tracksValue}>{tracksLabel}</span>
+        <button
+          type="button"
+          onClick={() => setEditingTracks(true)}
+          style={styles.tracksEditBtn}
+        >
+          調整
+        </button>
+      </div>
+
+      {recapBatch ? (
+        <Link
+          href={`/recap/${recapBatch.key}`}
+          style={styles.recapLink}
+        >
+          <div style={styles.recapCard}>
+            <div style={styles.recapHead}>
+              <span style={styles.recapBadge}>
+                ↺ {RECAP_BATCH_SIZE} 天回想 · {recapBatch.concepts.length} 題
+              </span>
+              <span style={styles.recapDayChip}>
+                Day {recapBatch.startDay}-{recapBatch.endDay}
+              </span>
+            </div>
+            <div style={styles.recapBody}>
+              <span style={styles.recapTitle}>
+                {recapBatch.concepts.map((c) => c.title).join(" · ")}
+              </span>
+              <span style={styles.recapArrow}>開始 →</span>
+            </div>
+          </div>
+        </Link>
+      ) : null}
+
       <ul style={styles.list}>
-        {ordered.map((c) => {
+        {filtered.map((c) => {
           const isReady = !!c.questions;
           const beforeFirstVisit = currentDay == null;
           const isToday = !beforeFirstVisit && c.releaseDay === currentDay;
@@ -112,8 +208,92 @@ const styles = {
     fontSize: 13,
     color: "#7a766c",
     fontStyle: "italic",
-    padding: "28px 28px 16px",
+    padding: "28px 28px 8px",
     letterSpacing: 0.3,
+  },
+  tracksRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "0 28px 16px",
+    fontSize: 12,
+  },
+  tracksLabel: {
+    fontFamily: "'Courier New', monospace",
+    color: "#6b6960",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    fontSize: 10,
+  },
+  tracksValue: {
+    color: "#9a968a",
+    fontSize: 12,
+  },
+  tracksEditBtn: {
+    marginLeft: "auto",
+    padding: "4px 10px",
+    background: "transparent",
+    border: "1px solid #2a2a30",
+    borderRadius: 6,
+    color: "#9a968a",
+    fontFamily: "inherit",
+    fontSize: 11,
+    cursor: "pointer",
+  },
+  recapLink: {
+    display: "block",
+    textDecoration: "none",
+    color: "inherit",
+    margin: "0 28px 18px",
+  },
+  recapCard: {
+    background:
+      "linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(96, 165, 250, 0.02) 100%)",
+    border: "1px solid rgba(96, 165, 250, 0.25)",
+    borderRadius: 12,
+    padding: "14px 16px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  recapHead: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  recapBadge: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10.5,
+    color: "#60a5fa",
+    letterSpacing: 0.8,
+  },
+  recapDayChip: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10,
+    color: "#6b6960",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  recapBody: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  recapTitle: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#dcd8cc",
+    lineHeight: 1.4,
+    flex: 1,
+    wordBreak: "break-word",
+  },
+  recapArrow: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#60a5fa",
+    letterSpacing: 0.5,
+    flexShrink: 0,
   },
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
   item: { borderBottom: "1px solid #1c1c20" },

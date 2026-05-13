@@ -49,13 +49,16 @@
 │   ├── TechByte.jsx            # 概念主元件（READ / QUIZ / RESULT 三階段）
 │   ├── KnowledgeMap.jsx        # /map 用的 grouped list
 │   ├── Header.jsx              # 全站 sticky header
-│   └── AuthForm.jsx            # username + password 登入/註冊
+│   ├── AuthForm.jsx            # username + password 登入/註冊
+│   ├── TrackSelection.jsx      # 方向多選 onboarding（首訪 + 調整）
+│   └── ConceptStub.jsx         # 未發布概念的 placeholder 頁
 ├── data/
-│   └── concepts.js             # 全部 16 個概念（資料 + 題目）
+│   └── concepts.js             # 32 個概念（資料 + 題目 + tracks）
 ├── lib/
 │   ├── supabase.js             # Supabase client init
 │   ├── auth-context.jsx        # useAuth() hook
-│   └── day-progress.js         # daily release localStorage logic
+│   ├── day-progress.js         # daily release localStorage logic
+│   └── track-prefs.js          # user track 偏好 localStorage logic
 ├── scripts/
 │   └── gen-concept.mjs         # 用 Claude 生內容草稿（含 reviewer pass，見 §11.5）
 ├── README.md                   # 部署 / 開發說明
@@ -71,6 +74,9 @@
   slug: String,                // URL-safe 穩定 identity（kebab-case），永不變
   releaseDay: Number,          // 發行時程索引（可調，跟 identity 解耦）
   level: 1 | 2 | 3,            // 1 基礎 / 2 取捨 / 3 細節，見 §11.6 rubric
+  tracks: [                    // 方向（OR 比對使用者選擇）。L1 一律全 4 個。
+    "backend" | "frontend" | "devops" | "ai"
+  ],
   prerequisites: [String],     // techbyte 內部 slug，沒讀真的看不懂的那種
   assumedKnowledge: [String],  // 自由文字標籤，描述讀者該懂但 techbyte 還沒寫成獨立概念的東西
   tag: String,                 // 分類：API 設計 / 工程 / 安全 / 程式設計 ...
@@ -193,6 +199,43 @@ localStorage.setItem('techbyte_first_visit', '2026-01-01'); location.reload();
 // 重置回新使用者
 localStorage.removeItem('techbyte_first_visit'); location.reload();
 ```
+
+---
+
+## 7.5 Feature: Track Selection（方向過濾）
+
+**為什麼存在**: 解決「user 不想學或工作用不到」的相關性問題。32 篇概念裡 backend 接近全集，但純前端工程師看到 gRPC、K8s 會覺得跟工作脫節。讓使用者選方向，過濾掉不相關的概念。
+
+**設計**:
+- 4 個方向：`backend` / `frontend` / `devops` / `ai`，可複選
+- OR 比對：concept.tracks 與 user tracks 有交集就顯示
+- L1 (Day 1-8) 全部標 4 個 track，foundation 沒人能跳
+- L2/L3 每篇 1-3 個 track 不等
+- 不在 track 內的概念**直接從首頁列表消失**（不灰階、不顯示），釋出視覺空間
+
+**首訪流程**:
+1. localStorage 沒 `techbyte_tracks_v1` → 顯示 `<TrackSelection />` 全屏
+2. 至少選 1 個才能 confirm，存進 localStorage
+3. 後續所有渲染照 user tracks 過濾
+
+**調整**: 首頁 tagline 下方有「你的方向: 後端、前端 [調整]」chip row，按 [調整] 重新打開 TrackSelection（帶現選）。
+
+**沒重排 releaseDay**: 過濾後使用者會看到日期 gap（例如 frontend 看不到 Day 18 grpc-vs-rest）— 視為 feature，不要 re-pack。當天沒新內容 = 一天休假。
+
+**程式碼位置**:
+- `lib/track-prefs.js` — `getTracks` / `setTracks` / `matchesTracks` / `ALL_TRACKS` / `TRACK_LABELS`
+- `components/TrackSelection.jsx` — multi-select UI
+- `app/page.jsx` — gate 與 filter 邏輯都在這
+
+**測試指令**:
+```js
+// 強制重選方向
+localStorage.removeItem('techbyte_tracks_v1'); location.reload();
+// 直接設定特定方向
+localStorage.setItem('techbyte_tracks_v1', JSON.stringify(['frontend'])); location.reload();
+```
+
+**寫新概念時要做**: 在 `tracks: [...]` 列出所有實際會在工作中用到該概念的職務。寧可多選不要漏（漏了就有人完全看不到該概念）。
 
 ---
 
