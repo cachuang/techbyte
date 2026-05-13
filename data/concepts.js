@@ -2492,18 +2492,6 @@ Cache-Control: max-age=300
         misconception: "200 是「協定成功」，不是「我做的事成功」。",
       },
     ],
-    recapQuestion: {
-      type: "概念辨識",
-      question: "HTTP stateless 的設計，帶來最大的工程好處是？",
-      options: [
-        { id: "a", text: "省記憶體，伺服器不用存使用者資料", correct: false },
-        { id: "b", text: "任何一台伺服器都能處理任何一個 request，水平擴展更容易", correct: true },
-        { id: "c", text: "request 加密強度更高", correct: false },
-      ],
-      explanation:
-        "Stateless 不是省資源（cookie/session 還是要存在某處），也跟加密無關。它真正的好處是「無記憶」── load balancer 可以把每個 request 隨機丟給任何一台 server，不用 sticky session；一台掛了其他直接接手。這是雲端 horizontal scaling 的基石。Stateful protocol 要嘛 sticky、要嘛把 state replicate 到所有節點，工程複雜度高一個量級。",
-      misconception: "Stateless 的價值不是「省」，是「可分散」。",
-    },
     furtherReading: [
       {
         title: "MDN — HTTP overview",

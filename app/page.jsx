@@ -11,9 +11,10 @@ import {
   TRACK_LABELS,
 } from "@/lib/track-prefs";
 import {
-  getRecapTarget,
-  isRecapDone,
-  RECAP_DELAY,
+  getCurrentBatch,
+  isBatchDone,
+  getBatchConcepts,
+  RECAP_BATCH_SIZE,
 } from "@/lib/recap-prefs";
 import TrackSelection from "@/components/TrackSelection";
 
@@ -39,14 +40,15 @@ export default function Home() {
     [ordered, userTracks],
   );
 
-  const recapConcept = useMemo(() => {
+  const recapBatch = useMemo(() => {
     if (!mounted || currentDay == null) return null;
-    const byDay = new Map(ordered.map((c) => [c.releaseDay, c]));
-    const target = getRecapTarget(currentDay, byDay);
-    if (!target) return null;
-    if (!matchesTracks(target.tracks, userTracks)) return null;
-    if (isRecapDone(target.slug)) return null;
-    return target;
+    const batch = getCurrentBatch(currentDay);
+    if (!batch || isBatchDone(batch.key)) return null;
+    const inBatch = getBatchConcepts(batch, ordered).filter((c) =>
+      matchesTracks(c.tracks, userTracks),
+    );
+    if (inBatch.length === 0) return null;
+    return { ...batch, concepts: inBatch };
   }, [mounted, currentDay, ordered, userTracks]);
 
   if (!mounted) return <div style={styles.root} />;
@@ -94,23 +96,25 @@ export default function Home() {
         </button>
       </div>
 
-      {recapConcept ? (
+      {recapBatch ? (
         <Link
-          href={`/recap/${recapConcept.slug}`}
+          href={`/recap/${recapBatch.key}`}
           style={styles.recapLink}
         >
           <div style={styles.recapCard}>
             <div style={styles.recapHead}>
               <span style={styles.recapBadge}>
-                ↺ {RECAP_DELAY} 天前回想
+                ↺ {RECAP_BATCH_SIZE} 天回想 · {recapBatch.concepts.length} 題
               </span>
               <span style={styles.recapDayChip}>
-                Day {String(recapConcept.releaseDay).padStart(2, "0")}
+                Day {recapBatch.startDay}-{recapBatch.endDay}
               </span>
             </div>
             <div style={styles.recapBody}>
-              <span style={styles.recapTitle}>{recapConcept.title}</span>
-              <span style={styles.recapArrow}>回想 →</span>
+              <span style={styles.recapTitle}>
+                {recapBatch.concepts.map((c) => c.title).join(" · ")}
+              </span>
+              <span style={styles.recapArrow}>開始 →</span>
             </div>
           </div>
         </Link>
