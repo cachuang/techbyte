@@ -193,7 +193,7 @@ export default function Home() {
           <p style={styles.dayZeroSubtitle}>
             不分方向都該會的入門概念。全部讀完此區會消失。
           </p>
-          <div style={styles.dayZeroGrid}>
+          <div style={styles.dayZeroGrid} className="tb-day-zero-grid">
             {dayZeroConcepts.map((c) => {
               const done = attemptedSlugs.has(c.slug);
               return (
