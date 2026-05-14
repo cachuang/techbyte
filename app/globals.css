@@ -1,11 +1,10 @@
 :root {
-  /* Latin 用 Inter（為螢幕設計、tabular numbers、CJK 不包進來 → 自動 fallback
-     到後面的原生 CJK 字型）；CJK 用 iOS PingFang TC / Android Noto Sans CJK / Win 微軟正黑。
-     瀏覽器按 codepoint 找：英文數字進 Inter、中文進原生字型。 */
+  /* 原生字型 stack：iOS 拿 SF Pro + PingFang TC、Android 拿 Roboto + Noto Sans CJK TC。
+     免 web font 載入、權重與 hinting 都是 OS 最佳化。 */
   --font-sans:
-    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Noto Sans CJK TC",
-    Roboto, system-ui, sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+    "Microsoft JhengHei", "Noto Sans TC", "Noto Sans CJK TC", Roboto, system-ui,
+    sans-serif;
   --font-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
