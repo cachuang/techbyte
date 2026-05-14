@@ -8,8 +8,8 @@ import {
 } from "@/lib/recap-prefs";
 
 // Pre-generate batches "1-5", "6-10", ... 涵蓋目前內容範圍。
-// 內容若擴張到 Day 36+，這裡要往上加；目前 32 天最大 batch 是 26-30。
-const MAX_BATCH_END_DAY = 30;
+// L1 全部移到 Day 0、L2/L3 壓縮到 Day 1-27 後，最大完整 batch 是 21-25。
+const MAX_BATCH_END_DAY = 25;
 
 export function generateStaticParams() {
   const out = [];

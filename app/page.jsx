@@ -78,6 +78,15 @@ export default function Home() {
     [ordered, userTracks],
   );
 
+  const dayZeroConcepts = useMemo(
+    () => filtered.filter((c) => c.releaseDay === 0 && c.questions),
+    [filtered],
+  );
+  const dayList = useMemo(
+    () => filtered.filter((c) => c.releaseDay > 0),
+    [filtered],
+  );
+
   const recapBatch = useMemo(() => {
     if (!mounted || currentDay == null) return null;
     const batch = getCurrentBatch(currentDay);
@@ -159,8 +168,36 @@ export default function Home() {
         </Link>
       ) : null}
 
+      {dayZeroConcepts.length > 0 ? (
+        <div style={styles.dayZeroCard}>
+          <div style={styles.dayZeroHead}>
+            <span style={styles.dayZeroEyebrow}>DAY 00 · 開機</span>
+            <span style={styles.dayZeroCount}>
+              {dayZeroConcepts.length} 篇入門
+            </span>
+          </div>
+          <p style={styles.dayZeroSubtitle}>
+            不分方向都該會的入門概念，隨時可讀。
+          </p>
+          <div style={styles.dayZeroGrid}>
+            {dayZeroConcepts.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/concept/${c.slug}`}
+                style={styles.dayZeroItem}
+                className="tb-day-zero-item"
+              >
+                <span style={styles.dayZeroItemTag}>{c.tag}</span>
+                <span style={styles.dayZeroItemTitle}>{c.title}</span>
+                <span style={styles.dayZeroItemArrow}>→</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <ul style={styles.list}>
-        {filtered.map((c) => {
+        {dayList.map((c) => {
           const isReady = !!c.questions;
           const beforeFirstVisit = currentDay == null;
           const isToday = !beforeFirstVisit && c.releaseDay === currentDay;
@@ -346,6 +383,85 @@ const styles = {
     letterSpacing: 1,
     fontWeight: 700,
     boxShadow: "0 4px 16px rgba(96, 165, 250, 0.35)",
+  },
+
+  dayZeroCard: {
+    margin: "0 28px 24px",
+    background:
+      "linear-gradient(135deg, rgba(74, 222, 128, 0.12) 0%, rgba(74, 222, 128, 0.03) 100%)",
+    border: "1px solid rgba(74, 222, 128, 0.45)",
+    borderLeft: "4px solid #4ade80",
+    borderRadius: 14,
+    padding: "20px 22px 18px",
+    boxShadow: "0 0 28px rgba(74, 222, 128, 0.1)",
+  },
+  dayZeroHead: {
+    display: "flex",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 6,
+  },
+  dayZeroEyebrow: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 12,
+    color: "#4ade80",
+    letterSpacing: 1.6,
+    fontWeight: 700,
+    textTransform: "uppercase",
+  },
+  dayZeroCount: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10.5,
+    color: "#6b6960",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  dayZeroSubtitle: {
+    fontSize: 13,
+    color: "#9a968a",
+    lineHeight: 1.55,
+    margin: "0 0 14px",
+  },
+  dayZeroGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 8,
+  },
+  dayZeroItem: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    padding: "10px 12px",
+    background: "rgba(255, 255, 255, 0.02)",
+    border: "1px solid rgba(74, 222, 128, 0.18)",
+    borderRadius: 8,
+    textDecoration: "none",
+    color: "inherit",
+    transition: "all 0.15s ease",
+  },
+  dayZeroItemTag: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 9.5,
+    color: "#7a766c",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    fontWeight: 600,
+  },
+  dayZeroItemTitle: {
+    fontSize: 13.5,
+    color: "#dcd8cc",
+    fontWeight: 600,
+    lineHeight: 1.35,
+    wordBreak: "break-word",
+  },
+  dayZeroItemArrow: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 11,
+    color: "#4ade80",
+    alignSelf: "flex-end",
+    opacity: 0.6,
+    marginTop: 2,
   },
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
   item: { borderBottom: "1px solid #1c1c20" },
