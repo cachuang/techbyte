@@ -22,7 +22,7 @@ import {
   setDoneBatches,
   RECAP_BATCH_SIZE,
 } from "@/lib/recap-prefs";
-import { fetchProfile, upsertProfile } from "@/lib/profile-sync";
+import { fetchProfile, upsertProfile, fetchAttemptedSlugs } from "@/lib/profile-sync";
 import { useAuth } from "@/lib/auth-context";
 import TrackSelection from "@/components/TrackSelection";
 
@@ -32,6 +32,7 @@ export default function Home() {
   const [userTracks, setUserTracks] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [editingTracks, setEditingTracks] = useState(false);
+  const [attemptedSlugs, setAttemptedSlugs] = useState(() => new Set());
 
   useEffect(() => {
     if (authLoading) return;
@@ -55,6 +56,9 @@ export default function Home() {
             recap_done: getDoneBatches(),
           });
         }
+        const slugs = await fetchAttemptedSlugs(user.id);
+        if (cancelled) return;
+        setAttemptedSlugs(slugs);
       } else {
         ensureFirstVisit();
       }
@@ -81,6 +85,16 @@ export default function Home() {
   const dayZeroConcepts = useMemo(
     () => filtered.filter((c) => c.releaseDay === 0 && c.questions),
     [filtered],
+  );
+  const dayZeroAllDone = useMemo(
+    () =>
+      dayZeroConcepts.length > 0 &&
+      dayZeroConcepts.every((c) => attemptedSlugs.has(c.slug)),
+    [dayZeroConcepts, attemptedSlugs],
+  );
+  const dayZeroDoneCount = useMemo(
+    () => dayZeroConcepts.filter((c) => attemptedSlugs.has(c.slug)).length,
+    [dayZeroConcepts, attemptedSlugs],
   );
   const dayList = useMemo(
     () => filtered.filter((c) => c.releaseDay > 0),
@@ -168,30 +182,51 @@ export default function Home() {
         </Link>
       ) : null}
 
-      {dayZeroConcepts.length > 0 ? (
+      {dayZeroConcepts.length > 0 && !dayZeroAllDone ? (
         <div style={styles.dayZeroCard}>
           <div style={styles.dayZeroHead}>
             <span style={styles.dayZeroEyebrow}>DAY 00 · 開機</span>
             <span style={styles.dayZeroCount}>
-              {dayZeroConcepts.length} 篇入門
+              {dayZeroDoneCount} / {dayZeroConcepts.length} 完成
             </span>
           </div>
           <p style={styles.dayZeroSubtitle}>
-            不分方向都該會的入門概念，隨時可讀。
+            不分方向都該會的入門概念，隨時可讀。讀完全部後此區會自動消失。
           </p>
           <div style={styles.dayZeroGrid}>
-            {dayZeroConcepts.map((c) => (
-              <Link
-                key={c.slug}
-                href={`/concept/${c.slug}`}
-                style={styles.dayZeroItem}
-                className="tb-day-zero-item"
-              >
-                <span style={styles.dayZeroItemTag}>{c.tag}</span>
-                <span style={styles.dayZeroItemTitle}>{c.title}</span>
-                <span style={styles.dayZeroItemArrow}>→</span>
-              </Link>
-            ))}
+            {dayZeroConcepts.map((c) => {
+              const done = attemptedSlugs.has(c.slug);
+              return (
+                <Link
+                  key={c.slug}
+                  href={`/concept/${c.slug}`}
+                  style={
+                    done
+                      ? { ...styles.dayZeroItem, ...styles.dayZeroItemDone }
+                      : styles.dayZeroItem
+                  }
+                  className="tb-day-zero-item"
+                >
+                  <span style={styles.dayZeroItemTag}>{c.tag}</span>
+                  <span
+                    style={
+                      done
+                        ? { ...styles.dayZeroItemTitle, ...styles.dayZeroItemTitleDone }
+                        : styles.dayZeroItemTitle
+                    }
+                  >
+                    {c.title}
+                  </span>
+                  <span
+                    style={
+                      done ? styles.dayZeroItemCheck : styles.dayZeroItemArrow
+                    }
+                  >
+                    {done ? "✓ 已讀" : "→"}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       ) : null}
@@ -461,6 +496,25 @@ const styles = {
     color: "#4ade80",
     alignSelf: "flex-end",
     opacity: 0.6,
+    marginTop: 2,
+  },
+  dayZeroItemDone: {
+    background: "rgba(74, 222, 128, 0.06)",
+    borderColor: "rgba(74, 222, 128, 0.35)",
+    opacity: 0.7,
+  },
+  dayZeroItemTitleDone: {
+    color: "#9a968a",
+    textDecoration: "line-through",
+    textDecorationColor: "rgba(154, 150, 138, 0.5)",
+  },
+  dayZeroItemCheck: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: 10.5,
+    color: "#4ade80",
+    alignSelf: "flex-end",
+    fontWeight: 700,
+    letterSpacing: 0.5,
     marginTop: 2,
   },
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
