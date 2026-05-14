@@ -78,7 +78,7 @@ const styles = {
     fontSize: 28,
     fontWeight: 700,
     color: "#f0f0e8",
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
+    fontFamily: "var(--font-sans)",
     marginBottom: 6,
     letterSpacing: -0.5,
   },
@@ -98,7 +98,7 @@ const styles = {
     fontSize: 32,
     fontWeight: 700,
     color: "#f0f0e8",
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
+    fontFamily: "var(--font-sans)",
     marginBottom: 16,
   },
   gateText: {

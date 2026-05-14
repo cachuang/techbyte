@@ -66,7 +66,7 @@ const styles = {
   },
   brandLink: { textDecoration: "none" },
   logo: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 18,
     color: "#facc15",
     letterSpacing: 2,
@@ -74,7 +74,7 @@ const styles = {
   },
   nav: { display: "flex", alignItems: "center", gap: 12, flexWrap: "nowrap" },
   navLink: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 13,
     color: "#aaa",
     letterSpacing: 1,
@@ -86,7 +86,7 @@ const styles = {
   navIcon: { fontSize: 15 },
   navLabel: {},
   username: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 13,
     color: "#888",
     letterSpacing: 0.3,
@@ -97,7 +97,7 @@ const styles = {
     border: "1px solid #2a2a2a",
     borderRadius: 6,
     padding: "7px 14px",
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 13,
     letterSpacing: 1,
     cursor: "pointer",

@@ -308,7 +308,7 @@ const styles = {
     minHeight: "100vh",
     background: "#0e0e10",
     color: "#dcd8cc",
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
+    fontFamily: "var(--font-sans)",
     maxWidth: 680,
     margin: "0 auto",
     padding: "0 0 80px",
@@ -328,7 +328,7 @@ const styles = {
     fontSize: 14,
   },
   tracksLabel: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     color: "#6b6960",
     letterSpacing: 1.2,
     textTransform: "uppercase",
@@ -374,14 +374,14 @@ const styles = {
     marginBottom: 2,
   },
   recapIcon: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 18,
     color: "#60a5fa",
     fontWeight: 700,
     lineHeight: 1,
   },
   recapEyebrow: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 12.5,
     color: "#60a5fa",
     letterSpacing: 1.4,
@@ -407,7 +407,7 @@ const styles = {
   recapCta: {
     marginTop: 8,
     alignSelf: "flex-start",
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 13.5,
     color: "#0a0a0a",
     background: "#60a5fa",
@@ -436,7 +436,7 @@ const styles = {
     marginBottom: 4,
   },
   dayZeroEyebrow: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 13,
     color: "#4ade80",
     letterSpacing: 1.4,
@@ -444,7 +444,7 @@ const styles = {
     textTransform: "uppercase",
   },
   dayZeroCount: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 12.5,
     color: "#9a968a",
     letterSpacing: 0.5,
@@ -476,7 +476,7 @@ const styles = {
     minHeight: 68,
   },
   dayZeroItemTag: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11,
     color: "#7a766c",
     letterSpacing: 1.1,
@@ -515,7 +515,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     lineHeight: 1,
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
   },
 
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
@@ -548,16 +548,14 @@ const styles = {
     gap: 3,
   },
   dayLabel: {
-    fontFamily:
-      "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 12,
     color: "#6b6960",
     letterSpacing: 2,
     fontWeight: 700,
   },
   dayNum: {
-    fontFamily:
-      "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif",
+    fontFamily: "var(--font-sans)",
     fontSize: 32,
     fontWeight: 800,
     color: "#c8c4b8",
@@ -566,8 +564,7 @@ const styles = {
     fontFeatureSettings: '"tnum"',
   },
   dayNumToday: {
-    fontFamily:
-      "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif",
+    fontFamily: "var(--font-sans)",
     fontSize: 34,
     fontWeight: 800,
     color: "#facc15",
@@ -583,7 +580,7 @@ const styles = {
     gap: 5,
   },
   tag: {
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
+    fontFamily: "var(--font-sans)",
     fontSize: 14,
     color: "#fbbf24",
     fontWeight: 500,
@@ -611,13 +608,13 @@ const styles = {
     minWidth: 60,
   },
   statusArrow: {
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
+    fontFamily: "var(--font-sans)",
     fontSize: 20,
     color: "#5a574e",
     fontWeight: 400,
   },
   statusFuture: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 12.5,
     color: "#6b6960",
     letterSpacing: 0.3,
@@ -627,7 +624,7 @@ const styles = {
   },
   lockIcon: { fontSize: 13 },
   statusSoon: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11.5,
     color: "#444",
     letterSpacing: 1,
@@ -641,7 +638,7 @@ const styles = {
     fontWeight: 700,
     fontSize: 12,
     letterSpacing: 1.2,
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     boxShadow: "0 0 16px rgba(250, 204, 21, 0.25)",
   },
 };

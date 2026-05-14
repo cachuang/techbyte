@@ -229,14 +229,14 @@ const styles = {
     flex: 1,
   },
   statValue: {
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
+    fontFamily: "var(--font-sans)",
     fontSize: 32,
     fontWeight: 700,
     lineHeight: 1,
     fontFeatureSettings: '"tnum"',
   },
   statLabel: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11,
     color: "#888",
     letterSpacing: 1,
@@ -257,7 +257,7 @@ const styles = {
   progressLabel: {
     fontSize: 12,
     color: "#7a766c",
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     letterSpacing: 0.3,
   },
   legend: {
@@ -268,7 +268,7 @@ const styles = {
     borderTop: "1px solid #1c1c20",
   },
   legendItem: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 10.5,
     fontWeight: 700,
     letterSpacing: 0.5,
@@ -289,14 +289,14 @@ const styles = {
     marginBottom: 4,
   },
   groupTag: {
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
+    fontFamily: "var(--font-sans)",
     fontSize: 15,
     fontWeight: 700,
     color: "#fbbf24",
     letterSpacing: 0.3,
   },
   groupCount: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11,
     color: "#7a766c",
     letterSpacing: 0.5,
@@ -321,7 +321,7 @@ const styles = {
     transition: "background 0.15s",
   },
   level: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 10.5,
     fontWeight: 700,
     letterSpacing: 0.3,
@@ -335,7 +335,7 @@ const styles = {
     transition: "all 0.2s",
   },
   day: {
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
+    fontFamily: "var(--font-sans)",
     fontSize: 14,
     fontWeight: 700,
     color: "#888",
@@ -351,7 +351,7 @@ const styles = {
     fontWeight: 500,
   },
   score: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 12,
     fontWeight: 700,
     letterSpacing: 0.5,

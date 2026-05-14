@@ -90,7 +90,7 @@ const styles = {
     minHeight: "100vh",
     background: "#0e0e10",
     color: "#dcd8cc",
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
+    fontFamily: "var(--font-sans)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -165,7 +165,7 @@ const styles = {
     color: "#f5efdc",
   },
   optionEn: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11,
     color: "#6b6960",
     letterSpacing: 0.5,

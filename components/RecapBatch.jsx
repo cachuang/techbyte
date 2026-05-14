@@ -237,7 +237,7 @@ const styles = {
     minHeight: "100vh",
     background: "#0e0e10",
     color: "#dcd8cc",
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), 'Noto Serif TC', serif",
+    fontFamily: "var(--font-sans)",
     maxWidth: 680,
     margin: "0 auto",
     padding: "20px 28px 80px",
@@ -255,7 +255,7 @@ const styles = {
     fontFamily: "inherit",
   },
   progress: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 12,
     color: "#6b6960",
     letterSpacing: 1,
@@ -264,7 +264,7 @@ const styles = {
     marginBottom: 14,
   },
   recapBadge: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11,
     color: "#60a5fa",
     background: "rgba(96, 165, 250, 0.1)",
@@ -298,7 +298,7 @@ const styles = {
     flexWrap: "wrap",
   },
   miniDay: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 10,
     color: "#6b6960",
     letterSpacing: 1.2,
@@ -314,7 +314,7 @@ const styles = {
     marginBottom: 12,
   },
   qType: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 10,
     color: "#6b6960",
     letterSpacing: 1.5,
@@ -348,7 +348,7 @@ const styles = {
     transition: "all 0.15s ease",
   },
   optionLetter: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 12,
     color: "#9a968a",
     fontWeight: 700,
@@ -408,7 +408,7 @@ const styles = {
     gap: 4,
   },
   misconceptionLabel: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 10,
     color: "#60a5fa",
     letterSpacing: 1.2,
@@ -429,7 +429,7 @@ const styles = {
     fontSize: 56,
     fontWeight: 700,
     color: "#facc15",
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
+    fontFamily: "var(--font-sans)",
     lineHeight: 1,
     fontFeatureSettings: '"tnum"',
   },
@@ -442,12 +442,12 @@ const styles = {
     fontSize: 32,
     color: "#9a968a",
     fontWeight: 700,
-    fontFamily: "'Georgia', var(--font-noto-serif-tc), serif",
+    fontFamily: "var(--font-sans)",
     fontFeatureSettings: '"tnum"',
   },
   summaryScoreLabel: {
     marginLeft: 10,
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11,
     color: "#6b6960",
     letterSpacing: 1.2,
@@ -474,7 +474,7 @@ const styles = {
     fontSize: 16,
   },
   summaryDay: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 10,
     color: "#6b6960",
     letterSpacing: 1.2,
@@ -487,7 +487,7 @@ const styles = {
     wordBreak: "break-word",
   },
   summaryRelink: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
     fontSize: 11,
     color: "#60a5fa",
     textDecoration: "none",
@@ -506,7 +506,7 @@ const styles = {
     fontSize: 13,
     letterSpacing: 0.5,
     textDecoration: "none",
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--font-mono)",
   },
   emptyText: {
     fontSize: 14,
