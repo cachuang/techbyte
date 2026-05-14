@@ -103,22 +103,22 @@ export default function Home() {
         <Link
           href={`/recap/${recapBatch.key}`}
           style={styles.recapLink}
+          className="tb-recap-link"
         >
           <div style={styles.recapCard}>
             <div style={styles.recapHead}>
-              <span style={styles.recapBadge}>
-                ↺ {RECAP_BATCH_SIZE} 天回想 · {recapBatch.concepts.length} 題
-              </span>
-              <span style={styles.recapDayChip}>
-                Day {recapBatch.startDay}-{recapBatch.endDay}
+              <span style={styles.recapIcon}>↺</span>
+              <span style={styles.recapEyebrow}>
+                Day {recapBatch.startDay}–{recapBatch.endDay} 回想 · {recapBatch.concepts.length} 題
               </span>
             </div>
-            <div style={styles.recapBody}>
-              <span style={styles.recapTitle}>
-                {recapBatch.concepts.map((c) => c.title).join(" · ")}
-              </span>
-              <span style={styles.recapArrow}>開始 →</span>
-            </div>
+            <h2 style={styles.recapTitle}>
+              還記得這 {recapBatch.concepts.length} 個概念嗎？
+            </h2>
+            <p style={styles.recapSubtitle}>
+              {recapBatch.concepts.map((c) => c.title).join(" · ")}
+            </p>
+            <span style={styles.recapCta}>開始回想 →</span>
           </div>
         </Link>
       ) : null}
@@ -247,56 +247,69 @@ const styles = {
     display: "block",
     textDecoration: "none",
     color: "inherit",
-    margin: "0 28px 18px",
+    margin: "0 28px 24px",
   },
   recapCard: {
     background:
-      "linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(96, 165, 250, 0.02) 100%)",
-    border: "1px solid rgba(96, 165, 250, 0.25)",
-    borderRadius: 12,
-    padding: "14px 16px",
+      "linear-gradient(135deg, rgba(96, 165, 250, 0.18) 0%, rgba(96, 165, 250, 0.05) 100%)",
+    border: "1px solid rgba(96, 165, 250, 0.55)",
+    borderLeft: "4px solid #60a5fa",
+    borderRadius: 14,
+    padding: "20px 22px 18px",
+    boxShadow: "0 0 36px rgba(96, 165, 250, 0.15)",
     display: "flex",
     flexDirection: "column",
-    gap: 8,
+    gap: 10,
   },
   recapHead: {
     display: "flex",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
+    marginBottom: 2,
   },
-  recapBadge: {
+  recapIcon: {
     fontFamily: "'Courier New', monospace",
-    fontSize: 10.5,
+    fontSize: 16,
     color: "#60a5fa",
-    letterSpacing: 0.8,
+    fontWeight: 700,
+    lineHeight: 1,
   },
-  recapDayChip: {
-    fontFamily: "'Courier New', monospace",
-    fontSize: 10,
-    color: "#6b6960",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-  },
-  recapBody: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  recapTitle: {
-    fontSize: 15,
-    fontWeight: 600,
-    color: "#dcd8cc",
-    lineHeight: 1.4,
-    flex: 1,
-    wordBreak: "break-word",
-  },
-  recapArrow: {
+  recapEyebrow: {
     fontFamily: "'Courier New', monospace",
     fontSize: 11,
     color: "#60a5fa",
-    letterSpacing: 0.5,
-    flexShrink: 0,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    fontWeight: 700,
+  },
+  recapTitle: {
+    fontSize: 22,
+    fontWeight: 700,
+    color: "#f5efdc",
+    lineHeight: 1.3,
+    margin: 0,
+    wordBreak: "break-word",
+    letterSpacing: -0.3,
+  },
+  recapSubtitle: {
+    fontSize: 13,
+    color: "#9a968a",
+    lineHeight: 1.55,
+    margin: 0,
+    wordBreak: "break-word",
+  },
+  recapCta: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    fontFamily: "'Courier New', monospace",
+    fontSize: 12,
+    color: "#0a0a0a",
+    background: "#60a5fa",
+    padding: "9px 16px",
+    borderRadius: 8,
+    letterSpacing: 1,
+    fontWeight: 700,
+    boxShadow: "0 4px 16px rgba(96, 165, 250, 0.35)",
   },
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
   item: { borderBottom: "1px solid #1c1c20" },
