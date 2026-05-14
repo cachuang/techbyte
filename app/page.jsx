@@ -25,8 +25,11 @@ export default function Home() {
   const [editingTracks, setEditingTracks] = useState(false);
 
   useEffect(() => {
+    const t = getTracks();
+    // eslint-disable-next-line no-console
+    console.log("[page mount] getTracks() returned=", t);
     setCurrentDay(getCurrentDay());
-    setUserTracks(getTracks());
+    setUserTracks(t);
     setMounted(true);
   }, []);
 
