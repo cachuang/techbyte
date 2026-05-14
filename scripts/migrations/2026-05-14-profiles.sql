@@ -6,6 +6,7 @@
 
 create table if not exists profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
+  username text,
   first_visit date,
   tracks jsonb,
   recap_done jsonb,
