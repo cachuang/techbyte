@@ -49,6 +49,7 @@ export default function Home() {
           // 此用戶 DB 還沒紀錄：把當前 local state 推上去
           const first = ensureFirstVisit();
           await upsertProfile(user.id, {
+            username: user.user_metadata?.username ?? null,
             first_visit: first,
             tracks: getTracks() || null,
             recap_done: getDoneBatches(),
