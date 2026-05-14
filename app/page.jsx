@@ -187,11 +187,11 @@ export default function Home() {
           <div style={styles.dayZeroHead}>
             <span style={styles.dayZeroEyebrow}>DAY 00 · 開機</span>
             <span style={styles.dayZeroCount}>
-              {dayZeroDoneCount} / {dayZeroConcepts.length} 完成
+              {dayZeroDoneCount} / {dayZeroConcepts.length}
             </span>
           </div>
           <p style={styles.dayZeroSubtitle}>
-            不分方向都該會的入門概念，隨時可讀。讀完全部後此區會自動消失。
+            不分方向都該會的入門概念。全部讀完此區會消失。
           </p>
           <div style={styles.dayZeroGrid}>
             {dayZeroConcepts.map((c) => {
@@ -207,6 +207,11 @@ export default function Home() {
                   }
                   className="tb-day-zero-item"
                 >
+                  {done ? (
+                    <span style={styles.dayZeroCheckIcon} aria-label="已讀">
+                      ✓
+                    </span>
+                  ) : null}
                   <span style={styles.dayZeroItemTag}>{c.tag}</span>
                   <span
                     style={
@@ -216,13 +221,6 @@ export default function Home() {
                     }
                   >
                     {c.title}
-                  </span>
-                  <span
-                    style={
-                      done ? styles.dayZeroItemCheck : styles.dayZeroItemArrow
-                    }
-                  >
-                    {done ? "✓ 已讀" : "→"}
                   </span>
                 </Link>
               );
@@ -319,14 +317,14 @@ const styles = {
     fontSize: 13,
     color: "#7a766c",
     fontStyle: "italic",
-    padding: "28px 28px 8px",
+    padding: "24px 20px 6px",
     letterSpacing: 0.3,
   },
   tracksRow: {
     display: "flex",
     alignItems: "center",
     gap: 10,
-    padding: "0 28px 16px",
+    padding: "0 20px 14px",
     fontSize: 12,
   },
   tracksLabel: {
@@ -355,7 +353,7 @@ const styles = {
     display: "block",
     textDecoration: "none",
     color: "inherit",
-    margin: "0 28px 24px",
+    margin: "0 20px 20px",
   },
   recapCard: {
     background:
@@ -421,101 +419,101 @@ const styles = {
   },
 
   dayZeroCard: {
-    margin: "0 28px 24px",
+    margin: "0 20px 20px",
     background:
-      "linear-gradient(135deg, rgba(74, 222, 128, 0.12) 0%, rgba(74, 222, 128, 0.03) 100%)",
-    border: "1px solid rgba(74, 222, 128, 0.45)",
-    borderLeft: "4px solid #4ade80",
-    borderRadius: 14,
-    padding: "20px 22px 18px",
-    boxShadow: "0 0 28px rgba(74, 222, 128, 0.1)",
+      "linear-gradient(135deg, rgba(74, 222, 128, 0.1) 0%, rgba(74, 222, 128, 0.03) 100%)",
+    border: "1px solid rgba(74, 222, 128, 0.4)",
+    borderLeft: "3px solid #4ade80",
+    borderRadius: 12,
+    padding: "14px 14px 12px",
+    boxShadow: "0 0 20px rgba(74, 222, 128, 0.08)",
   },
   dayZeroHead: {
     display: "flex",
     alignItems: "baseline",
     justifyContent: "space-between",
     gap: 10,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   dayZeroEyebrow: {
     fontFamily: "'Courier New', monospace",
-    fontSize: 12,
+    fontSize: 11.5,
     color: "#4ade80",
-    letterSpacing: 1.6,
+    letterSpacing: 1.4,
     fontWeight: 700,
     textTransform: "uppercase",
   },
   dayZeroCount: {
     fontFamily: "'Courier New', monospace",
-    fontSize: 10.5,
-    color: "#6b6960",
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
+    fontSize: 11,
+    color: "#9a968a",
+    letterSpacing: 0.5,
+    fontWeight: 600,
   },
   dayZeroSubtitle: {
-    fontSize: 13,
-    color: "#9a968a",
-    lineHeight: 1.55,
-    margin: "0 0 14px",
+    fontSize: 12,
+    color: "#7a766c",
+    lineHeight: 1.5,
+    margin: "0 0 10px",
   },
   dayZeroGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 8,
+    gap: 6,
   },
   dayZeroItem: {
+    position: "relative",
     display: "flex",
     flexDirection: "column",
-    gap: 4,
-    padding: "10px 12px",
-    background: "rgba(255, 255, 255, 0.02)",
-    border: "1px solid rgba(74, 222, 128, 0.18)",
+    gap: 3,
+    padding: "8px 26px 8px 10px",
+    background: "rgba(255, 255, 255, 0.015)",
+    border: "1px solid rgba(74, 222, 128, 0.16)",
     borderRadius: 8,
     textDecoration: "none",
     color: "inherit",
     transition: "all 0.15s ease",
+    minHeight: 56,
   },
   dayZeroItemTag: {
     fontFamily: "'Courier New', monospace",
-    fontSize: 9.5,
+    fontSize: 9,
     color: "#7a766c",
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
     textTransform: "uppercase",
     fontWeight: 600,
   },
   dayZeroItemTitle: {
-    fontSize: 13.5,
+    fontSize: 13,
     color: "#dcd8cc",
     fontWeight: 600,
-    lineHeight: 1.35,
+    lineHeight: 1.3,
     wordBreak: "break-word",
   },
-  dayZeroItemArrow: {
-    fontFamily: "'Courier New', monospace",
-    fontSize: 11,
-    color: "#4ade80",
-    alignSelf: "flex-end",
-    opacity: 0.6,
-    marginTop: 2,
-  },
   dayZeroItemDone: {
-    background: "rgba(74, 222, 128, 0.06)",
-    borderColor: "rgba(74, 222, 128, 0.35)",
-    opacity: 0.7,
+    background: "rgba(74, 222, 128, 0.05)",
+    borderColor: "rgba(74, 222, 128, 0.32)",
+    opacity: 0.72,
   },
   dayZeroItemTitleDone: {
     color: "#9a968a",
-    textDecoration: "line-through",
-    textDecorationColor: "rgba(154, 150, 138, 0.5)",
   },
-  dayZeroItemCheck: {
+  dayZeroCheckIcon: {
+    position: "absolute",
+    top: 6,
+    right: 8,
+    width: 18,
+    height: 18,
+    borderRadius: "50%",
+    background: "#4ade80",
+    color: "#0a0a0a",
+    fontSize: 11,
+    fontWeight: 800,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    lineHeight: 1,
     fontFamily: "'Courier New', monospace",
-    fontSize: 10.5,
-    color: "#4ade80",
-    alignSelf: "flex-end",
-    fontWeight: 700,
-    letterSpacing: 0.5,
-    marginTop: 2,
   },
   list: { listStyle: "none", padding: "8px 0", margin: 0 },
   item: { borderBottom: "1px solid #1c1c20" },
@@ -523,10 +521,10 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "72px 1fr auto",
+    gridTemplateColumns: "60px 1fr auto",
     alignItems: "center",
-    gap: 18,
-    padding: "20px 28px",
+    gap: 14,
+    padding: "18px 20px",
     transition: "background 0.2s ease",
     borderLeft: "3px solid transparent",
   },
