@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { concepts } from "@/data/concepts";
-import { getCurrentDay } from "@/lib/day-progress";
+import {
+  ensureFirstVisit,
+  getCurrentDay,
+  setFirstVisit,
+} from "@/lib/day-progress";
 import {
   getTracks,
   setTracks,
@@ -14,24 +18,54 @@ import {
   getCurrentBatch,
   isBatchDone,
   getBatchConcepts,
+  getDoneBatches,
+  setDoneBatches,
   RECAP_BATCH_SIZE,
 } from "@/lib/recap-prefs";
+import { fetchProfile, upsertProfile } from "@/lib/profile-sync";
+import { useAuth } from "@/lib/auth-context";
 import TrackSelection from "@/components/TrackSelection";
 
 export default function Home() {
+  const { user, loading: authLoading } = useAuth();
   const [currentDay, setCurrentDay] = useState(null);
   const [userTracks, setUserTracks] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [editingTracks, setEditingTracks] = useState(false);
 
   useEffect(() => {
-    const t = getTracks();
-    // eslint-disable-next-line no-console
-    console.log("[page mount] getTracks() returned=", t);
-    setCurrentDay(getCurrentDay());
-    setUserTracks(t);
-    setMounted(true);
-  }, []);
+    if (authLoading) return;
+    let cancelled = false;
+    (async () => {
+      if (user) {
+        const profile = await fetchProfile(user.id);
+        if (cancelled) return;
+        if (profile && profile.first_visit) {
+          // DB wins — 跨裝置進度以 DB 為準
+          setFirstVisit(profile.first_visit);
+          if (Array.isArray(profile.tracks)) setTracks(profile.tracks);
+          if (Array.isArray(profile.recap_done)) setDoneBatches(profile.recap_done);
+        } else {
+          // 此用戶 DB 還沒紀錄：把當前 local state 推上去
+          const first = ensureFirstVisit();
+          await upsertProfile(user.id, {
+            first_visit: first,
+            tracks: getTracks() || null,
+            recap_done: getDoneBatches(),
+          });
+        }
+      } else {
+        ensureFirstVisit();
+      }
+      if (cancelled) return;
+      setCurrentDay(getCurrentDay());
+      setUserTracks(getTracks());
+      setMounted(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading]);
 
   const ordered = useMemo(
     () => concepts.slice().sort((a, b) => a.releaseDay - b.releaseDay),
@@ -64,6 +98,7 @@ export default function Home() {
           setTracks(arr);
           setUserTracks(arr);
           setEditingTracks(false);
+          if (user) upsertProfile(user.id, { tracks: arr });
         }}
         onCancel={
           editingTracks

@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { markBatchDone } from "@/lib/recap-prefs";
+import { getDoneBatches, markBatchDone } from "@/lib/recap-prefs";
 import { getTracks, matchesTracks } from "@/lib/track-prefs";
+import { upsertProfile } from "@/lib/profile-sync";
+import { useAuth } from "@/lib/auth-context";
 
 export default function RecapBatch({ batch, concepts: allBatchConcepts }) {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [userTracks, setUserTracks] = useState(null);
   const [idx, setIdx] = useState(0);
@@ -100,6 +103,7 @@ export default function RecapBatch({ batch, concepts: allBatchConcepts }) {
   function handleNext() {
     if (isLast) {
       markBatchDone(batch.key);
+      if (user) upsertProfile(user.id, { recap_done: getDoneBatches() });
       setFinished(true);
       return;
     }
