@@ -76,13 +76,14 @@ a:focus:not(:focus-visible) {
     font-size: 14px !important;
   }
   .tb-day-row {
-    grid-template-columns: 60px 1fr auto !important;
+    grid-template-columns: 64px 1fr auto !important;
     gap: 14px !important;
     padding: 18px 18px !important;
     align-items: center !important;
   }
   .tb-day-num {
-    font-size: 26px !important;
+    font-size: 30px !important;
+    font-weight: 800 !important;
   }
   .tb-day-title {
     font-size: 17px !important;
