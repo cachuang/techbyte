@@ -504,7 +504,7 @@ const styles = {
     minHeight: "100vh",
     background: "#0a0a0a",
     color: "#e8e8e0",
-    fontFamily: "var(--font-sans)",
+    fontFamily: "var(--font-serif)",
     maxWidth: 680,
     margin: "0 auto",
     padding: "0 0 80px",
@@ -849,7 +849,7 @@ const styles = {
     color: "#888",
     lineHeight: 1.7,
     fontStyle: "italic",
-    fontFamily: "var(--font-sans)",
+    fontFamily: "var(--font-serif)",
   },
   originCard: {
     background: "#13110a",
