@@ -35,7 +35,7 @@ export default function MapPage() {
     return (
       <div style={styles.gate} className="tb-gate">
         <h1 style={styles.gateTitle} className="tb-gate-title">
-          🗺 知識地圖
+          🌱 我的技能樹
         </h1>
         <p style={styles.gateText} className="tb-gate-text">
           登入後即可看到 8 個主題、15 個概念的視覺化進度。
@@ -58,7 +58,7 @@ export default function MapPage() {
   return (
     <div style={styles.wrap} className="tb-map-wrap">
       <h1 style={styles.title} className="tb-map-title">
-        🗺 知識地圖
+        🌱 我的技能樹
       </h1>
       <p style={styles.subtitle} className="tb-map-subtitle">
         依領域分組的學習進度。點任一個概念前往閱讀或重做。

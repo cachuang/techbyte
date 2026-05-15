@@ -33,6 +33,27 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [editingTracks, setEditingTracks] = useState(false);
   const [attemptedSlugs, setAttemptedSlugs] = useState(() => new Set());
+  const [hubCollapsed, setHubCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem("techbyte_day0_collapsed") === "1") {
+      setHubCollapsed(true);
+    }
+  }, []);
+
+  function toggleHub() {
+    setHubCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          "techbyte_day0_collapsed",
+          next ? "1" : "0",
+        );
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (authLoading) return;
@@ -183,49 +204,73 @@ export default function Home() {
       ) : null}
 
       {dayZeroConcepts.length > 0 && !dayZeroAllDone ? (
-        <div style={styles.dayZeroCard}>
-          <div style={styles.dayZeroHead}>
+        <div
+          style={
+            hubCollapsed
+              ? { ...styles.dayZeroCard, ...styles.dayZeroCardCollapsed }
+              : styles.dayZeroCard
+          }
+        >
+          <button
+            type="button"
+            onClick={toggleHub}
+            style={styles.dayZeroHead}
+            aria-expanded={!hubCollapsed}
+            aria-controls="day-zero-body"
+          >
             <span style={styles.dayZeroEyebrow}>DAY 00 · 開機</span>
-            <span style={styles.dayZeroCount}>
-              {dayZeroDoneCount} / {dayZeroConcepts.length}
+            <span style={styles.dayZeroHeadRight}>
+              <span style={styles.dayZeroCount}>
+                {dayZeroDoneCount} / {dayZeroConcepts.length}
+              </span>
+              <span
+                style={styles.dayZeroChevron}
+                aria-hidden="true"
+              >
+                {hubCollapsed ? "▸" : "▾"}
+              </span>
             </span>
-          </div>
-          <p style={styles.dayZeroSubtitle}>
-            不分方向都該會的入門概念。全部讀完此區會消失。
-          </p>
-          <div style={styles.dayZeroGrid} className="tb-day-zero-grid">
-            {dayZeroConcepts.map((c) => {
-              const done = attemptedSlugs.has(c.slug);
-              return (
-                <Link
-                  key={c.slug}
-                  href={`/concept/${c.slug}`}
-                  style={
-                    done
-                      ? { ...styles.dayZeroItem, ...styles.dayZeroItemDone }
-                      : styles.dayZeroItem
-                  }
-                  className="tb-day-zero-item"
-                >
-                  {done ? (
-                    <span style={styles.dayZeroCheckIcon} aria-label="已讀">
-                      ✓
-                    </span>
-                  ) : null}
-                  <span style={styles.dayZeroItemTag}>{c.tag}</span>
-                  <span
-                    style={
-                      done
-                        ? { ...styles.dayZeroItemTitle, ...styles.dayZeroItemTitleDone }
-                        : styles.dayZeroItemTitle
-                    }
-                  >
-                    {c.title}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+          </button>
+          {!hubCollapsed ? (
+            <div id="day-zero-body">
+              <p style={styles.dayZeroSubtitle}>
+                不分方向都該會的入門概念。全部讀完此區會消失。
+              </p>
+              <div style={styles.dayZeroGrid} className="tb-day-zero-grid">
+                {dayZeroConcepts.map((c) => {
+                  const done = attemptedSlugs.has(c.slug);
+                  return (
+                    <Link
+                      key={c.slug}
+                      href={`/concept/${c.slug}`}
+                      style={
+                        done
+                          ? { ...styles.dayZeroItem, ...styles.dayZeroItemDone }
+                          : styles.dayZeroItem
+                      }
+                      className="tb-day-zero-item"
+                    >
+                      {done ? (
+                        <span style={styles.dayZeroCheckIcon} aria-label="已讀">
+                          ✓
+                        </span>
+                      ) : null}
+                      <span style={styles.dayZeroItemTag}>{c.tag}</span>
+                      <span
+                        style={
+                          done
+                            ? { ...styles.dayZeroItemTitle, ...styles.dayZeroItemTitleDone }
+                            : styles.dayZeroItemTitle
+                        }
+                      >
+                        {c.title}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -428,12 +473,36 @@ const styles = {
     padding: "16px 16px 14px",
     boxShadow: "0 0 20px rgba(74, 222, 128, 0.08)",
   },
+  dayZeroCardCollapsed: {
+    padding: "14px 16px",
+  },
   dayZeroHead: {
     display: "flex",
     alignItems: "baseline",
     justifyContent: "space-between",
     gap: 10,
-    marginBottom: 4,
+    marginBottom: 0,
+    background: "transparent",
+    border: "none",
+    padding: 0,
+    width: "100%",
+    fontFamily: "inherit",
+    color: "inherit",
+    fontSize: "inherit",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  dayZeroHeadRight: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  dayZeroChevron: {
+    fontFamily: "var(--font-mono)",
+    fontSize: 13,
+    color: "#4ade80",
+    lineHeight: 1,
+    transition: "transform 0.15s ease",
   },
   dayZeroEyebrow: {
     fontFamily: "var(--font-mono)",
@@ -454,7 +523,7 @@ const styles = {
     fontSize: 13.5,
     color: "#7a766c",
     lineHeight: 1.5,
-    margin: "0 0 12px",
+    margin: "8px 0 12px",
   },
   dayZeroGrid: {
     display: "grid",
