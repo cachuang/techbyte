@@ -3,8 +3,9 @@ import { Inter } from "next/font/google";
 import Providers from "./providers";
 import Header from "@/components/Header";
 
-// Inter 只載 Latin subset。中文不在這份字型裡 → 瀏覽器會自動 fallback
-// 到 --font-sans 後面的 PingFang TC / Noto Sans CJK 等原生字。
+// Inter 主要給 Windows 用。font stack 把它放在 -apple-system / BlinkMacSystemFont / Roboto
+// 之後 → iOS/Mac 走 SF Pro、Android 走 Roboto、Windows 找不到那些才 fallback 到 Inter。
+// next/font self-host、display: swap、Latin subset，不會 FOIT。
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
