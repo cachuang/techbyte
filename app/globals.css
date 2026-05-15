@@ -1,14 +1,10 @@
 :root {
-  /* Latin 字型 stack：
-     - iOS / Mac → -apple-system (SF Pro)
-     - Android → Roboto
-     - Windows → 上面都找不到 → fallback 到 var(--font-inter) (Inter)
-       （native Segoe UI 渲染不夠好，加 Inter 救一下）
-     CJK：iOS PingFang TC、Win 微軟正黑、Android Noto Sans CJK，全部原生。 */
+  /* 科技感 sans stack：Latin → Space Grotesk（幾何、tech vibe），CJK → Noto Sans TC。
+     原生字型放後面當 fallback，Web font 未載入完前先用 OS 字。 */
   --font-sans:
-    -apple-system, BlinkMacSystemFont, Roboto, var(--font-inter), "Segoe UI",
-    "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Noto Sans CJK TC",
-    system-ui, sans-serif;
+    var(--font-space-grotesk), var(--font-noto-sans-tc), -apple-system,
+    BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei",
+    "Noto Sans CJK TC", Roboto, system-ui, sans-serif;
   /* 閱讀內文用 serif：Latin 用 Georgia、CJK fallback 到 iOS Songti TC /
      Android Noto Serif CJK TC（原生 serif，免 web font）。 */
   --font-serif:
