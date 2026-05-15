@@ -37,14 +37,6 @@ export default function Header() {
         <nav style={styles.nav}>
           {!loading && user && (
             <>
-              <Link href="/stats" style={styles.navLink} className="tb-nav-link">
-                <span style={styles.navIcon}>📊</span>
-                <span style={styles.navLabel} className="tb-nav-label">我的數據</span>
-              </Link>
-              <Link href="/map" style={styles.navLink} className="tb-nav-link">
-                <span style={styles.navIcon}>🌱</span>
-                <span style={styles.navLabel} className="tb-nav-label">我的技能樹</span>
-              </Link>
               <span style={styles.username} className="tb-header-email">
                 @{user.user_metadata?.username || (user.email || "").split("@")[0]}
               </span>
@@ -78,12 +70,9 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "16px 20px",
+    padding: "14px 20px",
     borderBottom: "1px solid #1e1e1e",
     background: "#0a0a0a",
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
     maxWidth: 680,
     margin: "0 auto",
   },

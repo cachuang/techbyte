@@ -67,6 +67,14 @@ a:focus:not(:focus-visible) {
   outline: none;
 }
 
+/* Header + MainTabs 整塊頂部 sticky */
+.tb-sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0a0a0a;
+}
+
 /* === 手機響應式 overrides ===
    inline style 是預設（桌面），這裡的 class 在 ≤640px 覆蓋。 */
 
