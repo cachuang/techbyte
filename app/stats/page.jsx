@@ -42,8 +42,9 @@ export default function StatsPage() {
     let totalQuestions = 0;
     let totalCorrect = 0;
     for (const a of attempts) {
-      const ans = Array.isArray(a.answers) ? a.answers : [];
-      totalQuestions += ans.length;
+      const concept = conceptsWithQuiz.find((c) => c.slug === a.concept_slug);
+      const qCount = concept?.questions?.length ?? 0;
+      totalQuestions += qCount;
       totalCorrect += a.score ?? 0;
     }
     const accuracy =
