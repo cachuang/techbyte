@@ -38,8 +38,8 @@ export default function Header() {
           {!loading && user && (
             <>
               <Link href="/map" style={styles.navLink} className="tb-nav-link">
-                <span style={styles.navIcon}>🗺</span>
-                <span style={styles.navLabel}>知識地圖</span>
+                <span style={styles.navIcon}>🌱</span>
+                <span style={styles.navLabel}>我的技能樹</span>
               </Link>
               <span style={styles.username} className="tb-header-email">
                 @{user.user_metadata?.username || (user.email || "").split("@")[0]}

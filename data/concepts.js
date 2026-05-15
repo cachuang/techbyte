@@ -175,6 +175,18 @@ query {
         misconception: "API 層的好處不會自動轉成整體效能，要看後端有沒有處理好 N+1。",
       },
     ],
+    recapQuestion: {
+      type: "情境判斷",
+      question: "API 給 mobile 跟 web 共用，mobile 只要 user.name + user.avatar，web 要全部 user 欄位。選 REST 還是 GraphQL？",
+      options: [
+        { id: "a", text: "REST，做兩個 endpoint 各回不同 shape", correct: false },
+        { id: "b", text: "GraphQL — client 自己 query 要的欄位，一個 endpoint 兩種 shape", correct: true },
+        { id: "c", text: "都不好，自己另設計", correct: false },
+      ],
+      explanation:
+        "這是 GraphQL 經典甜蜜點：多個 client 需要不同形狀的同一份資料。REST 做兩套 endpoint 維護成本高，single endpoint 又會 over-fetch。GraphQL 一個 endpoint + query selection 各取所需。但「資料形狀對所有 client 一致」時 REST 比較簡單。",
+      misconception: "「REST 永遠夠用」是錯的——client 需求差異大時 GraphQL 真的省事。",
+    },
     furtherReading: [
       {
         title: "graphql.org — Learn",
@@ -3051,6 +3063,18 @@ ws.send(JSON.stringify({ text: "hello" }));`,
         misconception: "WebSocket 的 deploy / scale 複雜度比 HTTP 高很多，是它最大的隱形成本。",
       },
     ],
+    recapQuestion: {
+      type: "情境判斷",
+      question: "要做股票報價即時 push 給網頁前端，伺服器單向送資料就好。WebSocket vs SSE 哪個更合適？",
+      options: [
+        { id: "a", text: "WebSocket，因為比較先進", correct: false },
+        { id: "b", text: "SSE — 單向 push 是它甜蜜點、HTTP 相容、瀏覽器自動重連", correct: true },
+        { id: "c", text: "都可以、隨意", correct: false },
+      ],
+      explanation:
+        "SSE 是 server → client 單向 push 的標準方案。WebSocket 雙向但你只用一個方向 = 過度工程。SSE 還內建自動重連（Last-Event-ID 續斷點），WebSocket 要自己寫 reconnection。LLM token streaming、股票報價都用 SSE。「即時 = WebSocket」是常見誤解。",
+      misconception: "「即時」≠「WebSocket」——單向場景 SSE 更輕量、相容性也更好。",
+    },
     furtherReading: [
       {
         title: "MDN — WebSockets API",
@@ -3152,6 +3176,18 @@ loop();`,
         misconception: "減少 request 次數 ≠ 省資源——hold 住的 idle connection 一樣是成本。",
       },
     ],
+    recapQuestion: {
+      type: "錯誤假設",
+      question: "工程師說：「我們上 long-polling 就跟 WebSocket 一樣 real-time 了」對嗎？",
+      options: [
+        { id: "a", text: "對，使用者體驗差不多", correct: false },
+        { id: "b", text: "不對，long-polling 每個事件後要重建 HTTP request，有 reconnect 成本；WebSocket 是一條持續開的 TCP connection", correct: true },
+        { id: "c", text: "對，且 long-polling 更省 server 資源", correct: false },
+      ],
+      explanation:
+        "long-polling 是「掛起 HTTP request 等事件」——一旦伺服器回 response，connection 就結束、client 要再發新 request。每個事件附帶一次 round-trip 跟新 TCP / TLS handshake 成本。WebSocket 是一條持續開的 socket，事件直接 push 過去，沒 reconnect。在高頻率訊息場景兩者差距更明顯。但對 proxy / firewall 相容性 long-polling 又比 WebSocket 友善——這是取捨。",
+      misconception: "long-polling 看似即時，但 throughput 跟 reconnect cost 跟 WebSocket 還是有量級差異。",
+    },
     furtherReading: [
       {
         title: "MDN — Concept of long-polling",

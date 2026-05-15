@@ -434,7 +434,7 @@ export default function TechByte({ concept }) {
           </p>
 
           <p style={styles.saveStatus}>
-            {!user && "💾 登入後即可保存進度，跨裝置查看你的知識地圖"}
+            {!user && "💾 登入後即可保存進度，跨裝置查看你的技能樹"}
             {user && saveStatus === "saving" && "儲存中..."}
             {user && saveStatus === "saved" && "✓ 已儲存到你的紀錄"}
             {user && saveStatus === "error" && "⚠️ 儲存失敗，但解答已顯示"}
