@@ -22,7 +22,8 @@ import {
   setDoneBatches,
   RECAP_BATCH_SIZE,
 } from "@/lib/recap-prefs";
-import { fetchProfile, upsertProfile, fetchAttemptedSlugs } from "@/lib/profile-sync";
+import { fetchProfile, upsertProfile, fetchUserActivity } from "@/lib/profile-sync";
+import { computeStreak } from "@/lib/streak";
 import { useAuth } from "@/lib/auth-context";
 import TrackSelection from "@/components/TrackSelection";
 
@@ -33,6 +34,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [editingTracks, setEditingTracks] = useState(false);
   const [attemptedSlugs, setAttemptedSlugs] = useState(() => new Set());
+  const [streak, setStreak] = useState({ current: 0, max: 0 });
   const [hubCollapsed, setHubCollapsed] = useState(false);
 
   useEffect(() => {
@@ -77,9 +79,10 @@ export default function Home() {
             recap_done: getDoneBatches(),
           });
         }
-        const slugs = await fetchAttemptedSlugs(user.id);
+        const activity = await fetchUserActivity(user.id);
         if (cancelled) return;
-        setAttemptedSlugs(slugs);
+        setAttemptedSlugs(activity.slugs);
+        setStreak(computeStreak(activity.dates));
       } else {
         ensureFirstVisit();
       }
@@ -163,9 +166,18 @@ export default function Home() {
 
   return (
     <div style={styles.root}>
-      <p style={styles.tagline} className="tb-tagline">
-        A byte a day, keeps the layoff away
-      </p>
+      <div style={styles.topRow}>
+        <p style={styles.tagline} className="tb-tagline">
+          A byte a day, keeps the layoff away
+        </p>
+        {user && streak.current > 0 ? (
+          <Link href="/stats" style={styles.streakChip}>
+            <span style={styles.streakFlame}>🔥</span>
+            <span style={styles.streakNum}>{streak.current}</span>
+            <span style={styles.streakLabel}>連續</span>
+          </Link>
+        ) : null}
+      </div>
 
       <div style={styles.tracksRow}>
         <span style={styles.tracksLabel}>你的方向</span>
@@ -370,12 +382,53 @@ const styles = {
     margin: "0 auto",
     padding: "0 0 80px",
   },
+  topRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "24px 20px 8px",
+    gap: 12,
+  },
   tagline: {
     fontSize: 15,
     color: "#7a766c",
     fontStyle: "italic",
-    padding: "24px 20px 8px",
     letterSpacing: 0.3,
+    margin: 0,
+    flex: 1,
+    minWidth: 0,
+  },
+  streakChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "5px 11px 5px 9px",
+    background: "rgba(248, 113, 113, 0.1)",
+    border: "1px solid rgba(248, 113, 113, 0.4)",
+    borderRadius: 999,
+    textDecoration: "none",
+    flexShrink: 0,
+  },
+  streakFlame: {
+    fontSize: 14,
+    lineHeight: 1,
+  },
+  streakNum: {
+    fontFamily: "var(--font-mono)",
+    fontSize: 14,
+    color: "#fca5a5",
+    fontWeight: 800,
+    letterSpacing: 0.5,
+    lineHeight: 1,
+  },
+  streakLabel: {
+    fontFamily: "var(--font-mono)",
+    fontSize: 10.5,
+    color: "#fca5a5",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    fontWeight: 700,
+    lineHeight: 1,
   },
   tracksRow: {
     display: "flex",

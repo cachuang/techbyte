@@ -83,7 +83,6 @@ a:focus:not(:focus-visible) {
 
   /* Day list 首頁 */
   .tb-tagline {
-    padding: 22px 18px 12px !important;
     font-size: 14px !important;
   }
   .tb-day-row {
@@ -126,10 +125,14 @@ a:focus:not(:focus-visible) {
     justify-content: center;
   }
   .tb-nav-link {
-    padding: 10px 4px !important;
+    padding: 10px 6px !important;
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+  }
+  /* 多個 nav links 在小螢幕只顯示 icon，文字隱藏 */
+  .tb-nav-label {
+    display: none !important;
   }
   .tb-auth-wrap {
     padding: 0 16px !important;

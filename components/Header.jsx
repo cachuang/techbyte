@@ -37,9 +37,13 @@ export default function Header() {
         <nav style={styles.nav}>
           {!loading && user && (
             <>
+              <Link href="/stats" style={styles.navLink} className="tb-nav-link">
+                <span style={styles.navIcon}>📊</span>
+                <span style={styles.navLabel} className="tb-nav-label">我的數據</span>
+              </Link>
               <Link href="/map" style={styles.navLink} className="tb-nav-link">
                 <span style={styles.navIcon}>🌱</span>
-                <span style={styles.navLabel}>我的技能樹</span>
+                <span style={styles.navLabel} className="tb-nav-label">我的技能樹</span>
               </Link>
               <span style={styles.username} className="tb-header-email">
                 @{user.user_metadata?.username || (user.email || "").split("@")[0]}
