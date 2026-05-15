@@ -1,15 +1,11 @@
 :root {
-  /* 科技感 sans stack：Latin → Space Grotesk（幾何、tech vibe），CJK → Noto Sans TC。
-     原生字型放後面當 fallback，Web font 未載入完前先用 OS 字。 */
-  --font-sans:
-    var(--font-space-grotesk), var(--font-noto-sans-tc), -apple-system,
-    BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei",
-    "Noto Sans CJK TC", Roboto, system-ui, sans-serif;
-  /* 閱讀內文用 serif：Latin 用 Georgia、CJK fallback 到 iOS Songti TC /
-     Android Noto Serif CJK TC（原生 serif，免 web font）。 */
+  /* 全站統一用 serif：Latin 用 Georgia、CJK fallback 到 iOS Songti TC /
+     Android Noto Serif CJK TC（原生 serif，免 web font）。
+     --font-sans 也指到同一份 stack，向後相容既有 var(--font-sans) 引用。 */
   --font-serif:
     Georgia, "Songti TC", "Source Han Serif TC", "Noto Serif CJK TC",
     "Noto Serif TC", serif;
+  --font-sans: var(--font-serif);
   --font-mono: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
