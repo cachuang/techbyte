@@ -1,16 +1,22 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Space_Grotesk, Noto_Sans_TC } from "next/font/google";
 import Providers from "./providers";
 import Header from "@/components/Header";
 
-// Inter 主要給 Windows 用。font stack 把它放在 -apple-system / BlinkMacSystemFont / Roboto
-// 之後 → iOS/Mac 走 SF Pro、Android 走 Roboto、Windows 找不到那些才 fallback 到 Inter。
-// next/font self-host、display: swap、Latin subset，不會 FOIT。
-const inter = Inter({
+// Latin 用 Space Grotesk（幾何感、tech vibe）。next/font self-host、display: swap。
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-space-grotesk",
+});
+
+// CJK 用 Noto Sans TC。CJK 字型 file 較大，只載必要 weights、auto-subset 後實際下載量小很多。
+const notoSansTC = Noto_Sans_TC({
+  weight: ["400", "500", "700"],
+  display: "swap",
+  preload: false,
+  variable: "--font-noto-sans-tc",
 });
 
 export const metadata = {
@@ -27,7 +33,10 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="zh-Hant" className={inter.variable}>
+    <html
+      lang="zh-Hant"
+      className={`${spaceGrotesk.variable} ${notoSansTC.variable}`}
+    >
       <body>
         <Providers>
           <Header />
