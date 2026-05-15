@@ -99,9 +99,6 @@ export default function StatsPage() {
   return (
     <div style={styles.root}>
       <div style={styles.header}>
-        <Link href="/" style={styles.backLink}>
-          ← 回首頁
-        </Link>
         <h1 style={styles.title}>我的數據</h1>
       </div>
 

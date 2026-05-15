@@ -1,6 +1,7 @@
 import "./globals.css";
 import Providers from "./providers";
 import Header from "@/components/Header";
+import MainTabs from "@/components/MainTabs";
 
 export const metadata = {
   title: "techbyte — A byte a day",
@@ -19,7 +20,10 @@ export default function RootLayout({ children }) {
     <html lang="zh-Hant">
       <body>
         <Providers>
-          <Header />
+          <div className="tb-sticky-top">
+            <Header />
+            <MainTabs />
+          </div>
           {children}
         </Providers>
       </body>
