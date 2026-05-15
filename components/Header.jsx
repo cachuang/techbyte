@@ -14,16 +14,23 @@ export default function Header() {
       <header style={styles.header} className="tb-header">
         <Link href="/" style={styles.brandLink} aria-label="techbyte home">
           <svg
-            width="26"
-            height="26"
-            viewBox="0 0 64 64"
+            width="28"
+            height="28"
+            viewBox="0 0 32 32"
             aria-hidden="true"
             style={styles.brandMark}
           >
-            <rect width="64" height="64" rx="14" fill="#facc15" />
-            <rect x="14" y="10" width="9" height="44" rx="1.5" fill="#0a0a0a" />
-            <circle cx="35" cy="40" r="14.5" fill="#0a0a0a" />
-            <circle cx="35.5" cy="40" r="5.5" fill="#facc15" />
+            <rect width="32" height="32" rx="6" fill="#0a0a0a" />
+            <g fill="#facc15">
+              <circle cx="5.5" cy="11" r="2.5" />
+              <circle cx="12.5" cy="11" r="2.5" />
+              <circle cx="19.5" cy="11" r="2.5" />
+              <circle cx="26.5" cy="11" r="2.5" />
+              <circle cx="5.5" cy="21" r="2.5" />
+              <circle cx="12.5" cy="21" r="2.5" />
+              <circle cx="19.5" cy="21" r="2.5" />
+              <circle cx="26.5" cy="21" r="2.5" />
+            </g>
           </svg>
           <span style={styles.logo}>techbyte</span>
         </Link>
