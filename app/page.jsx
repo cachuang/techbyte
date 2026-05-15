@@ -282,6 +282,7 @@ export default function Home() {
           const isFuture = !beforeFirstVisit && c.releaseDay > currentDay;
           const daysUntil = isFuture ? c.releaseDay - currentDay : 0;
           const isUnlocked = isReady && !isFuture;
+          const isDone = isUnlocked && attemptedSlugs.has(c.slug);
 
           let statusEl;
           if (!isReady) {
@@ -295,6 +296,12 @@ export default function Home() {
             );
           } else if (isToday) {
             statusEl = <span style={styles.todayBadge}>今天</span>;
+          } else if (isDone) {
+            statusEl = (
+              <span style={styles.statusDone} aria-label="已讀">
+                ✓
+              </span>
+            );
           } else {
             statusEl = <span style={styles.statusArrow}>→</span>;
           }
@@ -303,7 +310,15 @@ export default function Home() {
             ? { ...styles.row, ...styles.rowToday }
             : isFuture
             ? { ...styles.row, ...styles.rowFuture }
+            : isDone
+            ? { ...styles.row, ...styles.rowDone }
             : styles.row;
+
+          const titleStyle = isToday
+            ? styles.titleToday
+            : isDone
+            ? { ...styles.title, ...styles.titleDone }
+            : styles.title;
 
           const inner = (
             <div style={rowStyle} className="tb-day-row">
@@ -320,10 +335,7 @@ export default function Home() {
                 <span style={styles.tag} className="tb-day-tag">
                   {c.tag}
                 </span>
-                <span
-                  style={isToday ? styles.titleToday : styles.title}
-                  className="tb-day-title"
-                >
+                <span style={titleStyle} className="tb-day-title">
                   {c.title}
                 </span>
               </div>
@@ -402,12 +414,12 @@ const styles = {
   },
   recapCard: {
     background:
-      "linear-gradient(135deg, rgba(96, 165, 250, 0.18) 0%, rgba(96, 165, 250, 0.05) 100%)",
-    border: "1px solid rgba(96, 165, 250, 0.55)",
-    borderLeft: "4px solid #60a5fa",
-    borderRadius: 14,
-    padding: "20px 22px 18px",
-    boxShadow: "0 0 36px rgba(96, 165, 250, 0.15)",
+      "linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(96, 165, 250, 0.03) 100%)",
+    border: "1px solid rgba(96, 165, 250, 0.35)",
+    borderLeft: "3px solid #60a5fa",
+    borderRadius: 12,
+    padding: "18px 20px 16px",
+    boxShadow: "0 0 20px rgba(96, 165, 250, 0.08)",
     display: "flex",
     flexDirection: "column",
     gap: 10,
@@ -450,17 +462,17 @@ const styles = {
     wordBreak: "break-word",
   },
   recapCta: {
-    marginTop: 8,
+    marginTop: 6,
     alignSelf: "flex-start",
     fontFamily: "var(--font-mono)",
-    fontSize: 13.5,
-    color: "#0a0a0a",
-    background: "#60a5fa",
-    padding: "10px 18px",
+    fontSize: 13,
+    color: "#60a5fa",
+    background: "rgba(96, 165, 250, 0.15)",
+    padding: "8px 16px",
     borderRadius: 8,
+    border: "1px solid rgba(96, 165, 250, 0.4)",
     letterSpacing: 1,
     fontWeight: 700,
-    boxShadow: "0 4px 16px rgba(96, 165, 250, 0.35)",
   },
 
   dayZeroCard: {
@@ -608,6 +620,11 @@ const styles = {
   rowFuture: {
     opacity: 0.55,
   },
+  rowDone: {
+    background:
+      "linear-gradient(90deg, rgba(74, 222, 128, 0.05) 0%, transparent 60%)",
+    borderLeft: "3px solid rgba(74, 222, 128, 0.45)",
+  },
 
   dayNumWrap: {
     display: "flex",
@@ -669,6 +686,9 @@ const styles = {
     fontWeight: 700,
     wordBreak: "break-word",
   },
+  titleDone: {
+    color: "#8a8678",
+  },
 
   statusCol: {
     display: "flex",
@@ -681,6 +701,20 @@ const styles = {
     fontSize: 20,
     color: "#5a574e",
     fontWeight: 400,
+  },
+  statusDone: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 24,
+    height: 24,
+    borderRadius: "50%",
+    background: "#4ade80",
+    color: "#0a0a0a",
+    fontFamily: "var(--font-mono)",
+    fontSize: 14,
+    fontWeight: 800,
+    lineHeight: 1,
   },
   statusFuture: {
     fontFamily: "var(--font-mono)",
