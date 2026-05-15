@@ -1,13 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#0a0a0a"/>
-  <g fill="#facc15">
-    <circle cx="5.5" cy="11" r="2.5"/>
-    <circle cx="12.5" cy="11" r="2.5"/>
-    <circle cx="19.5" cy="11" r="2.5"/>
-    <circle cx="26.5" cy="11" r="2.5"/>
-    <circle cx="5.5" cy="21" r="2.5"/>
-    <circle cx="12.5" cy="21" r="2.5"/>
-    <circle cx="19.5" cy="21" r="2.5"/>
-    <circle cx="26.5" cy="21" r="2.5"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#facc15"/>
+  <!-- 粗體 lowercase b：vertical stem + 環狀 bowl，byte 字首 -->
+  <rect x="14" y="10" width="9" height="44" rx="1.5" fill="#0a0a0a"/>
+  <circle cx="35" cy="40" r="14.5" fill="#0a0a0a"/>
+  <circle cx="35.5" cy="40" r="5.5" fill="#facc15"/>
 </svg>

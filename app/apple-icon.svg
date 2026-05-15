@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <!-- iOS 會自動套 mask-icon 圓角，但保留 rx 讓 PWA / fallback 也好看 -->
+  <rect width="180" height="180" rx="40" fill="#facc15"/>
+  <!-- 粗體 lowercase b：vertical stem + 環狀 bowl -->
+  <rect x="40" y="28" width="25" height="124" rx="4" fill="#0a0a0a"/>
+  <circle cx="99" cy="113" r="41" fill="#0a0a0a"/>
+  <circle cx="100" cy="113" r="15.5" fill="#facc15"/>
+</svg>
