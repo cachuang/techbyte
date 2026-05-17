@@ -81,6 +81,8 @@ export default function Home() {
         }
         const activity = await fetchUserActivity(user.id);
         if (cancelled) return;
+        // eslint-disable-next-line no-console
+        console.log("[home] attemptedSlugs set to:", [...activity.slugs]);
         setAttemptedSlugs(activity.slugs);
         setStreak(computeStreak(activity.dates));
       } else {
