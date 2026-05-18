@@ -1,0 +1,38 @@
+name: Notify on pending wishes
+
+on:
+  schedule:
+    # 每天 01:00 UTC = 09:00 台北時間（早上提醒）
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      threshold:
+        description: "覆寫通知門檻（預設 3）"
+        required: false
+        default: "3"
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Check + notify
+        run: node scripts/notify-pending-wishes.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          WISH_THRESHOLD: ${{ github.event.inputs.threshold || '3' }}
