@@ -3523,6 +3523,120 @@ spec:
       },
     ],
   },
+
+  {
+    slug: "5g",
+    releaseDay: 29,
+    level: 3,
+    tracks: ["devops"],
+    prerequisites: ["network-layers", "tcp-vs-udp"],
+    assumedKnowledge: ["移動通訊基本概念", "latency / bandwidth 差異"],
+    tag: "網路",
+    title: "5G（不只是更快的 4G）",
+    hook: "5G 看新聞天天講，但你的 backend 真的因為 5G 變了什麼嗎？速度更快只是表象。",
+    body: `行銷講 5G 強調「速度比 4G 快 100 倍、下載一部電影只要 3 秒」——這是 mmWave 高頻段（28-39 GHz）在最佳條件下的理論值。實際上 mmWave 訊號穿牆能力差、覆蓋範圍只有幾百公尺，你日常用的還是 sub-6 GHz 頻段，速度比 4G 快 2-5 倍而已。如果只關注「速度」，5G 對大部分後端架構沒影響。
+
+對工程師真正重要的是三個結構性變化：(1) **網路切片（Network Slicing）**——把實體網路切成多個邏輯網路，每個 slice 給不同 SLA（自駕車要 1ms 超低延遲、IoT 感測器要海量連接、影音要高頻寬），讓「面向特定 use case 的網路」變可能。(2) **邊緣運算（MEC, Multi-access Edge Computing）**——把運算從中央 cloud 推到基地台旁邊，URLLC（Ultra-Reliable Low-Latency Communications）能做到 1ms 端到端延遲，工廠自動化、AR/VR 才用得起。(3) **海量連接**——每平方公里支援 100 萬個裝置，IoT 規模質變。對絕大多數 web app，5G 不會改變你的 backend 設計；但邊緣推論、即時遊戲、自動化系統會吃到實際好處。`,
+    analogy: {
+      icon: "🛣",
+      title: "高速公路 vs 專用車道",
+      text: "4G 像一條 6 線高速公路，所有車（影音、簡訊、IoT 感測器、自駕車控制訊號）混在一起。5G slicing 像把高速公路切成「貨車專用」「救護車優先」「自駕車封閉道」等多條獨立路網——每條都有自己的 SLA。MEC 則像在交流道旁邊蓋小型物流中心，貨不用拉到中央倉再分送。",
+    },
+    analogyHint: "切割車道（slicing） + 在地物流中心（MEC）",
+    originStory:
+      "5G 正式商用始於 2019 年（韓國、美國），但早期被當成「4G+」賣。真正的轉折點是 2021-2022 年「Standalone (SA)」架構部署——之前的 NSA（Non-Standalone）只是把 5G radio 接到 4G core network 上，沒法實現 slicing 或低延遲承諾。SA 版本才能跑完整 5G 功能。截至 2026 年，全球 SA 5G 涵蓋率約 30%，許多運營商還在過渡中。這也是為什麼很多「5G 應用」實際上跑在 NSA 上，效能跟 4G 沒太大差別。",
+    example: {
+      code: `// 對 backend 開發者，5G 的實際影響檢核表
+// 通常答案是 (3)，少數場景才會是 (1) 或 (2)
+function does5GMatterForMyApp() {
+  // 1. 端到端 1ms 延遲，且使用者在 MEC 覆蓋區
+  if (needsUrllc() && userInMecZone()) return "yes, redesign for edge";
+
+  // 2. 需要 IoT 大規模連接（10K+ devices/cell）
+  if (massiveIot() && perCellDensity() > 10_000) return "yes, choose mMTC slice";
+
+  // 3. 其他通通是 marketing
+  return "no, 4G is fine. 5G just adds bandwidth headroom.";
+}`,
+      note: "判斷 5G 對你的服務是否關鍵的三個維度：URLLC（超低延遲）、massive IoT（海量連接）、enhanced mobile broadband（高頻寬）。前兩個是真有差異，第三個對大多數 web app 來說 4G 已夠用。",
+    },
+    tradeoffs: [
+      { label: "✅ 真的有差", text: "工業自動化（< 5ms 控制延遲）、AR/VR 即時繪製、自駕車車聯網、大規模 IoT 感測（智慧城市、農場）" },
+      { label: "⚠️ 看情況", text: "雲端遊戲、即時影音串流——理論上有低延遲好處，但實際還要看 MEC 部署、終端裝置、運營商 SLA" },
+      { label: "❌ 沒差別", text: "一般 web app、API、電商、社群——4G/WiFi 已夠用，5G 提供的是頻寬餘裕而非結構性改變。不要為了「5G」改架構。" },
+    ],
+    oneLiner: "5G 的工程價值在切片 + 邊緣運算，不在「速度」。對大多數 web app 等於 4G+，對 URLLC / massive IoT 才是質變。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "「5G 比 4G 快 100 倍」這句話對工程師的意義是？",
+        options: [
+          { id: "a", text: "我的 backend 終於可以做即時串流了", correct: false },
+          { id: "b", text: "理論最大值在最佳 mmWave 條件下成立，sub-6 GHz 實測快 2-5 倍。對大部分 web app 無結構性影響", correct: true },
+          { id: "c", text: "5G 把所有網路問題都解決了，可以不用 cache", correct: false },
+        ],
+        explanation:
+          "「快 100 倍」是 mmWave 在無干擾、近距離、視線清晰的理論峰值——日常 sub-6 GHz 頻段實測只快 2-5 倍。對 backend 來說這個速度差大多被吸進「使用者覺得 app 開比較快」這種主觀感受，不會改變你的架構決策（你不會因為 5G 拿掉 cache 或 CDN）。真正改變後端的是 slicing + MEC，不是速度。",
+        misconception: "「5G = 更快」是行銷話術；對工程師重要的是 slicing + 邊緣運算這兩個結構性能力。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "你做了一個雲端遊戲 backend，用戶在台北、server 在東京 AWS。5G 能讓你的端到端延遲變多低？",
+        options: [
+          { id: "a", text: "1ms — URLLC 規格寫的", correct: false },
+          { id: "b", text: "看情況：5G radio 端到 base station 約 1-5ms，但東京 server 還是 30-50ms 物理距離擋著，只省 radio 那一段", correct: true },
+          { id: "c", text: "10ms — 5G 標準延遲", correct: false },
+        ],
+        explanation:
+          "URLLC 的 1ms 指「端到 base station」的 air interface 延遲——你的 server 在東京，封包還要經過運營商核心網、海纜、AWS internal routing。物理距離本身就 ~30ms 光速 RTT，5G 解決不了。要拿到 URLLC 的承諾，你的 server 必須跑在 MEC（基地台旁邊），這需要跟運營商談合約 + 重新設計部署。一般 cloud region 跑 5G 終端使用者，省下的只是 access network 那一段（從 4G 的 20-50ms 縮到 1-5ms）。",
+        misconception: "5G 的低延遲承諾要 MEC 配合才能兌現——server 在傳統 cloud region 拿不到 1ms。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "PM 說：「我們要做 5G 行動 app，backend 需要重寫嗎？」",
+        options: [
+          { id: "a", text: "要，5G 是全新的協議堆疊", correct: false },
+          { id: "b", text: "不用。5G 動 L1-L3，application layer 完全不變。只有要利用 slicing 或部署到 MEC 才要改架構", correct: true },
+          { id: "c", text: "要，HTTP/3 是 5G 必備", correct: false },
+        ],
+        explanation:
+          "5G 在 OSI 模型只動 L1-L3（radio、傳輸、網路層）。應用層（HTTP、TCP/UDP、TLS）完全沒變——你的 backend 收到的 request 跟 4G 一模一樣，只是更快。「重寫 backend」唯二理由：(1) 要利用 slicing（要跟運營商簽 SLA、配置不同 slice ID）、(2) 部署到 MEC（要把服務搬到基地台邊緣節點）。HTTP/3 是 transport layer 改進，跟 5G 無關（4G + HTTP/3 也可以）。",
+        misconception: "5G 是 radio/network layer 改變，application layer 完全不動——「5G app」這個概念多半是 marketing。",
+      },
+    ],
+    recapQuestion: {
+      type: "情境判斷",
+      question: "「我要做 5G app，要重寫 backend 嗎？」對 99% 的 web app，正確答案是？",
+      options: [
+        { id: "a", text: "要，5G 是全新協議", correct: false },
+        { id: "b", text: "不用——5G 動 L1-L3，application layer 完全不變。只有要用 slicing 或 MEC 才要改", correct: true },
+        { id: "c", text: "看 PM", correct: false },
+      ],
+      explanation:
+        "5G 改的是 radio + transport + network layer，application layer（HTTP、TCP、你的 API）完全沒動。「5G app」這個概念在 99% 的場景是 marketing，不是工程現實。",
+      misconception: "新基礎設施不必然帶來新 app — 要看影響的是哪一層。",
+    },
+    furtherReading: [
+      {
+        title: "Network Slicing for 5G — Cisco",
+        url: "https://www.cisco.com/c/en/us/solutions/service-provider/5g-network/network-slicing.html",
+        why: "業界對 slicing 的實作面解釋，含跟 MPLS / SDN 的關係",
+      },
+      {
+        title: "What is Multi-Access Edge Computing (MEC)? — ETSI",
+        url: "https://www.etsi.org/technologies/multi-access-edge-computing",
+        why: "MEC 的標準制定者，文件最權威，理解架構必看",
+      },
+      {
+        title: "5G Standalone vs Non-Standalone — Ericsson",
+        url: "https://www.ericsson.com/en/blog/2019/4/standalone-and-non-standalone-5g",
+        why: "為什麼很多「5G」其實只是 NSA、跟 4G 沒太大差別 — 一定要看",
+      },
+    ],
+  },
 ];
 
 export function getConceptBySlug(slug) {
