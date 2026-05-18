@@ -5,9 +5,18 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 const TABS = [
-  { href: "/", label: "每日", icon: "📅", match: (p) => !p.startsWith("/stats") && !p.startsWith("/map") },
-  { href: "/stats", label: "我的數據", icon: "📊", match: (p) => p.startsWith("/stats") },
-  { href: "/map", label: "我的技能樹", icon: "🌱", match: (p) => p.startsWith("/map") },
+  {
+    href: "/",
+    label: "每日",
+    icon: "📅",
+    match: (p) =>
+      !p.startsWith("/stats") &&
+      !p.startsWith("/map") &&
+      !p.startsWith("/wishes"),
+  },
+  { href: "/stats", label: "數據", icon: "📊", match: (p) => p.startsWith("/stats") },
+  { href: "/map", label: "技能樹", icon: "🌱", match: (p) => p.startsWith("/map") },
+  { href: "/wishes", label: "我想學", icon: "💡", match: (p) => p.startsWith("/wishes") },
 ];
 
 export default function MainTabs() {
@@ -63,13 +72,14 @@ const styles = {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    padding: "12px 8px",
+    gap: 5,
+    padding: "12px 4px",
     textDecoration: "none",
     color: "#7a766c",
     borderBottom: "2px solid transparent",
     transition: "all 0.15s ease",
     minHeight: 44,
+    minWidth: 0,
   },
   tabActive: {
     color: "#facc15",
