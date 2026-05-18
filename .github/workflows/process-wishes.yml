@@ -1,0 +1,61 @@
+name: Process pending wishes
+
+on:
+  schedule:
+    # 每天 04:00 UTC = 12:00 台北時間
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}  # 也能在 GitHub Actions 頁手動觸發
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Process wishes (fetch + gen + mark generated)
+        run: node scripts/process-wishes.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Open PR if drafts changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "auto: drafts from wishes"
+          title: "Drafts from wishes (auto)"
+          body: |
+            Auto-generated drafts from the daily wish processor.
+
+            **Review checklist for each draft**:
+            1. Read `data/drafts/<slug>.review.md` — verdict and issues
+            2. Look at `data/drafts/<slug>.json` — full content
+            3. If verdict is `pass` or `needs-edit`:
+               - Edit the JSON inline in this PR if needed
+               - Copy the object into `data/concepts.js`
+               - Pick a real `releaseDay` (current placeholder is `999`)
+               - Delete the draft file
+            4. If verdict is `rewrite`: probably best to discard and let the next run try again, or regenerate manually with better stub
+
+            After merging + deploying, mark each linked wish as published:
+            ```sql
+            UPDATE wishes
+            SET status = 'published'
+            WHERE linked_concept_slug = '<slug>';
+            ```
+          branch: auto/wish-drafts
+          add-paths: |
+            data/drafts/**
+          delete-branch: false
