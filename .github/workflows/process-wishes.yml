@@ -1,10 +1,11 @@
-name: Process pending wishes
+name: Process pending wishes (LLM-powered, manual only)
 
 on:
-  schedule:
-    # 每天 04:00 UTC = 12:00 台北時間
-    - cron: "0 4 * * *"
-  workflow_dispatch: {}  # 也能在 GitHub Actions 頁手動觸發
+  # cron 暫時關掉 — 需要 ANTHROPIC_API_KEY 才會花錢自動跑。
+  # 想啟用：取消下面註解 + 設 GH Secret ANTHROPIC_API_KEY。
+  # schedule:
+  #   - cron: "0 4 * * *"
+  workflow_dispatch: {}  # 改成只能手動觸發
 
 permissions:
   contents: write
