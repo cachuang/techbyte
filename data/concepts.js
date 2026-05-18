@@ -3530,11 +3530,11 @@ spec:
     level: 3,
     tracks: ["devops"],
     prerequisites: ["network-layers", "tcp-vs-udp"],
-    assumedKnowledge: ["移動通訊基本概念", "latency / bandwidth 差異"],
+    assumedKnowledge: ["移動通訊基本概念", "latency / bandwidth 差異", "雲端基本概念（cloud region / latency)"],
     tag: "網路",
     title: "5G（不只是更快的 4G）",
     hook: "5G 看新聞天天講，但你的 backend 真的因為 5G 變了什麼嗎？速度更快只是表象。",
-    body: `行銷講 5G 強調「速度比 4G 快 100 倍、下載一部電影只要 3 秒」——這是 mmWave 高頻段（28-39 GHz）在最佳條件下的理論值。實際上 mmWave 訊號穿牆能力差、覆蓋範圍只有幾百公尺，你日常用的還是 sub-6 GHz 頻段，速度比 4G 快 2-5 倍而已。如果只關注「速度」，5G 對大部分後端架構沒影響。
+    body: `行銷講 5G 強調「速度比 4G 快 100 倍、下載一部電影只要 3 秒」——這是 mmWave 高頻段（如 28 GHz / 39 GHz）在最佳條件下的理論值。實際上 mmWave 訊號穿牆能力差、覆蓋範圍只有幾百公尺，你日常用的還是 sub-6 GHz 頻段，速度比 4G 快 2-5 倍而已。如果只關注「速度」，5G 對大部分後端架構沒影響。
 
 對工程師真正重要的是三個結構性變化：(1) **網路切片（Network Slicing）**——把實體網路切成多個邏輯網路，每個 slice 給不同 SLA（自駕車要 1ms 超低延遲、IoT 感測器要海量連接、影音要高頻寬），讓「面向特定 use case 的網路」變可能。(2) **邊緣運算（MEC, Multi-access Edge Computing）**——把運算從中央 cloud 推到基地台旁邊，URLLC（Ultra-Reliable Low-Latency Communications）能做到 1ms 端到端延遲，工廠自動化、AR/VR 才用得起。(3) **海量連接**——每平方公里支援 100 萬個裝置，IoT 規模質變。對絕大多數 web app，5G 不會改變你的 backend 設計；但邊緣推論、即時遊戲、自動化系統會吃到實際好處。`,
     analogy: {
@@ -3574,10 +3574,10 @@ function does5GMatterForMyApp() {
         options: [
           { id: "a", text: "我的 backend 終於可以做即時串流了", correct: false },
           { id: "b", text: "理論最大值在最佳 mmWave 條件下成立，sub-6 GHz 實測快 2-5 倍。對大部分 web app 無結構性影響", correct: true },
-          { id: "c", text: "5G 把所有網路問題都解決了，可以不用 cache", correct: false },
+          { id: "c", text: "5G 主要讓行動裝置受惠，固網（家用 / 辦公室 wired）跟它沒關係", correct: false },
         ],
         explanation:
-          "「快 100 倍」是 mmWave 在無干擾、近距離、視線清晰的理論峰值——日常 sub-6 GHz 頻段實測只快 2-5 倍。對 backend 來說這個速度差大多被吸進「使用者覺得 app 開比較快」這種主觀感受，不會改變你的架構決策（你不會因為 5G 拿掉 cache 或 CDN）。真正改變後端的是 slicing + MEC，不是速度。",
+          "「快 100 倍」是 mmWave 在無干擾、近距離、視線清晰的理論峰值——日常 sub-6 GHz 頻段實測只快 2-5 倍。對 backend 來說這個速度差大多被吸進「使用者覺得 app 開比較快」這種主觀感受，不會改變你的架構決策。Option C 也錯——5G base station 後面還是有線 backhaul（光纖回中央），固網跟 5G 在運營商網路裡是同個體系；5G 只改 last-mile radio access。真正改變後端的是 slicing + MEC，不是速度。",
         misconception: "「5G = 更快」是行銷話術；對工程師重要的是 slicing + 邊緣運算這兩個結構性能力。",
       },
       {
