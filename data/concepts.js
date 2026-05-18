@@ -3405,6 +3405,124 @@ frontend http_front
       },
     ],
   },
+
+  {
+    slug: "service-mesh",
+    releaseDay: 28,
+    level: 3,
+    tracks: ["backend", "devops"],
+    prerequisites: ["kubernetes", "load-balancer"],
+    assumedKnowledge: ["微服務基本概念", "HTTP / gRPC inter-service 通訊"],
+    tag: "工程",
+    title: "Service Mesh",
+    hook: "100 個微服務之間互相呼叫，要怎麼一致處理 retry / timeout / mTLS / 觀測？難道每個服務都自己寫一遍？",
+    body: `微服務拆得越細，服務間呼叫就越多。每條呼叫都需要：retry policy、timeout、circuit breaker、mTLS 加密、tracing header 傳遞、metrics 上報、流量切換⋯ 如果每個服務都自己寫一份，100 個服務就有 100 個版本——升級一致性、語言差異、bug 修補都是地獄。
+
+Service Mesh 把這些「服務間通訊的共通需求」拉到**基礎設施層**：每個服務 pod 旁邊放一個 sidecar proxy（如 Envoy），所有 inbound/outbound 流量都先經過它。Sidecar 負責 retry / mTLS / 觀測，應用程式就只寫 business logic。Control plane（如 Istio / Linkerd）統一管所有 sidecar 的設定，你改一個 YAML 就讓全部服務套用新的 retry 策略。注意 mesh 主要管 east-west（服務間）通訊；ingress / 對外加密通常還是另一層（Ingress controller / API gateway）。代價是延遲多一跳（每個請求進出 sidecar）、complexity 上升一個量級——你多了一整層 control plane + N 個 sidecar 要監控、升級、備援、debug。`,
+    analogy: {
+      icon: "📞",
+      title: "公司總機 vs 每個人自己接電話",
+      text: "沒 mesh 像每個員工自己接外線——錄音規格、轉接邏輯、加密協議 100 個版本。加 mesh 像每個員工配一個總機助理 (sidecar)——所有電話先過助理，公司一聲令下「全員改成加密通話」助理就統一切換，員工渾然不覺。代價是多一個轉手延遲。",
+    },
+    analogyHint: "員工自接 vs 配總機助理",
+    originStory:
+      "Service Mesh 概念在 2016 年由 Linkerd（Buoyant）提出，將過去散在各服務內的「communication layer」抽出來。2017 Google 跟 IBM 推出 Istio，靠 Envoy 做 data plane、加上強大的 control plane API（VirtualService、DestinationRule 等），一度成為 Kubernetes 上 mesh 的 de facto。但 Istio 的學習曲線跟營運成本太高，2020 後 Linkerd（用 Rust 寫的微 proxy）跟 Cilium Mesh（基於 eBPF）開始反撲——Cilium 跳過 user-space sidecar 額外的 process 開銷（仍有 eBPF 攔截 overhead，但延遲明顯較低）。今天的趨勢是「不要一上來就用 mesh」——先確定你的微服務數真的撐起這層複雜度再導入。",
+    example: {
+      code: `# Istio: 全域 retry policy，零行 application code 改動
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: orders-service
+spec:
+  hosts: ["orders"]
+  http:
+  - retries:
+      attempts: 3
+      perTryTimeout: 2s
+      retryOn: 5xx,reset,connect-failure
+    route:
+    - destination:
+        host: orders
+        subset: v2`,
+      note: "這份 YAML 套上去，所有呼叫 orders service 的流量自動有 retry。沒 mesh 的話，每個 caller 都要自己寫 retry library + 對齊版本。",
+    },
+    tradeoffs: [
+      { label: "✅ 適合", text: "10+ 微服務、需要統一 retry / mTLS / 觀測 / 流量切換的場景；多語言架構（Go + Node + Python 混用）" },
+      { label: "⚠️ 注意", text: "每跳多一個 proxy = +1-5ms 延遲；control plane 本身要監控、升級、備援；debug 變難（多一層介入點）" },
+      { label: "❌ 不適合", text: "<10 個服務、單一語言、團隊小（< 20 工程師）— 直接在語言層用 library（如 Resilience4j、gRPC interceptor）解決即可，導入 mesh 反而拖累 velocity" },
+    ],
+    oneLiner: "Service Mesh 把服務間通訊的共通需求（retry / mTLS / 觀測）抽到 sidecar——複雜度從應用層搬到基礎設施層。",
+    questions: [
+      {
+        id: 1,
+        type: "概念辨識",
+        question: "Service Mesh 的 sidecar proxy 解決了什麼問題？",
+        options: [
+          { id: "a", text: "讓服務跑得更快", correct: false },
+          { id: "b", text: "把 retry / mTLS / 觀測等共通通訊邏輯從應用程式抽到基礎設施層，統一管理", correct: true },
+          { id: "c", text: "取代 Kubernetes Service / Ingress", correct: false },
+        ],
+        explanation:
+          "Sidecar 攔截所有進出 pod 的流量，把過去要每個服務 caller 自己寫的 retry、timeout、circuit breaker、mTLS、metrics 上報等通用邏輯統一在 proxy 處理。應用程式只需專注 business logic。不會讓服務「跑得更快」（多一跳反而多 1-5ms 延遲），也不取代 K8s Service（後者是 service discovery + load balancing，mesh 是 application-layer 治理）。",
+        misconception: "mesh 是「加法」（加治理能力），不是「替代」(取代 K8s 內建路由)，也不是「優化」（不會變快）。",
+      },
+      {
+        id: 2,
+        type: "情境判斷",
+        question: "你們公司 8 個微服務、全部 Go 寫的、團隊 12 人。要不要導入 Istio？",
+        options: [
+          { id: "a", text: "要，現代微服務架構必備", correct: false },
+          { id: "b", text: "不要，規模還沒到痛點。直接用 Go 的 gRPC interceptor / resilience library 就好", correct: true },
+          { id: "c", text: "要，順便把 K8s 一起導入", correct: false },
+        ],
+        explanation:
+          "Service Mesh 的價值在「多服務 + 多語言 + 需要統一治理」的場景。8 個服務 + 單一語言 + 12 人團隊，導入 Istio 會：(1) 維護 control plane 的 operational burden（要監控、升級、備援、debug 都變難）大於它解決的問題；(2) Go 已經有 gRPC retry interceptor、resilience4j 這些 library 可在語言層解決；(3) 學習成本（Envoy filter、VirtualService、DestinationRule⋯）會吃掉 1-2 個工程師。等服務數量、團隊規模、多語言需求都到位再導入。",
+        misconception: "「現代微服務必備 Service Mesh」是 over-engineering — 規模沒到的時候它就是負擔。",
+      },
+      {
+        id: 3,
+        type: "錯誤假設",
+        question: "工程師說：「我們上 Istio 之後系統會更穩定」對嗎？",
+        options: [
+          { id: "a", text: "對，retry / circuit breaker 內建", correct: false },
+          { id: "b", text: "不一定。Istio 給你工具但不會自動穩定，反而引入一整層新的失敗模式（sidecar bug、control plane 中斷、proxy 設定錯誤）", correct: true },
+          { id: "c", text: "對，自動 mTLS 把網路問題都解決了", correct: false },
+        ],
+        explanation:
+          "Mesh 提供能力，不等於自動穩定。常見新失敗模式：(1) Sidecar 本身 OOM 或 crash，業務服務跟著掛；(2) Control plane (istiod) 掛掉，新 pod 啟動拿不到設定；(3) VirtualService YAML 寫錯一個欄位，全公司流量被導錯；(4) Envoy 版本升級踩 regression；(5) control plane 故障期間 cert 無法 rotate，最終導致服務間 TLS 失效。每個失敗模式都是新債。Istio 帶來「強大 + 高複雜度」，需要團隊有專門 SRE 維護才能真正穩定。",
+        misconception: "「工具強大」≠「結果穩定」。新工具會帶新 failure modes，總風險是相加的。",
+      },
+    ],
+    recapQuestion: {
+      type: "情境判斷",
+      question: "8 個 Go 微服務、12 人團隊，要不要導入 Service Mesh？",
+      options: [
+        { id: "a", text: "要，業界標配", correct: false },
+        { id: "b", text: "不要 — 規模沒到痛點，用 language-level library (gRPC interceptor) 就夠", correct: true },
+        { id: "c", text: "看老闆", correct: false },
+      ],
+      explanation:
+        "Mesh 的成本（control plane 維護 / debug 複雜度 / 學習曲線）只有在多語言 + 多服務（>10）+ 大團隊（>20）才會被它的價值蓋過。小規模直接 library 解。",
+      misconception: "「業界標配」往往等於「沒考慮自己情境」的標籤。",
+    },
+    furtherReading: [
+      {
+        title: "Istio docs — What is Istio?",
+        url: "https://istio.io/latest/docs/concepts/what-is-istio/",
+        why: "官方對 mesh + control plane 架構解釋最清楚的一份",
+      },
+      {
+        title: "Buoyant Blog — The Service Mesh: What every software engineer needs to know",
+        url: "https://buoyant.io/service-mesh-manifesto",
+        why: "Linkerd 創辦人 William Morgan 講 mesh 的 value prop 跟邊界 — 比 Istio docs 更實務",
+      },
+      {
+        title: "Cilium Mesh — Sidecar-free service mesh",
+        url: "https://cilium.io/use-cases/service-mesh/",
+        why: "看 eBPF-based 的下一代 mesh 怎麼跳過 sidecar 延遲開銷，理解未來趨勢",
+      },
+    ],
+  },
 ];
 
 export function getConceptBySlug(slug) {
